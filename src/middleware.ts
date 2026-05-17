@@ -1,0 +1,55 @@
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { rateLimitMiddleware } from "@/lib/rate-limit";
+
+export async function middleware(req: NextRequest) {
+  const rateLimitResponse = rateLimitMiddleware(req);
+  if (rateLimitResponse) return rateLimitResponse;
+
+  const res = NextResponse.next();
+  const supabase = createMiddlewareClient({ req, res });
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  const isAuthRoute = req.nextUrl.pathname.startsWith("/login") ||
+    req.nextUrl.pathname.startsWith("/signup") ||
+    req.nextUrl.pathname.startsWith("/reset-password") ||
+    req.nextUrl.pathname.startsWith("/verify-email");
+
+  const isProtectedRoute = req.nextUrl.pathname.startsWith("/dashboard") ||
+    req.nextUrl.pathname.startsWith("/onboarding") ||
+    req.nextUrl.pathname.startsWith("/documents") ||
+    req.nextUrl.pathname.startsWith("/compliance") ||
+    req.nextUrl.pathname.startsWith("/settings") ||
+    req.nextUrl.pathname.startsWith("/billing");
+
+  if (isProtectedRoute && !session) {
+    const redirectUrl = new URL("/login", req.url);
+    redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname);
+    return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isAuthRoute && session) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  res.headers.set("X-Content-Type-Options", "nosniff");
+  res.headers.set("X-Frame-Options", "DENY");
+  res.headers.set("X-XSS-Protection", "1; mode=block");
+  res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()"
+  );
+
+  return res;
+}
+
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|api/webhooks).*)",
+  ],
+};
