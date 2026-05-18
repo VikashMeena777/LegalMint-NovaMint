@@ -10,7 +10,7 @@ export default function TermsPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
             </Link>
             <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
               Back to Home
@@ -26,7 +26,7 @@ export default function TermsPage() {
         <div className="prose prose-slate max-w-none">
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">1. Acceptance of Terms</h2>
           <p className="text-slate-700 mb-4">
-            By accessing or using LegalEase AI (&quot;the Platform&quot;), you agree to be bound by these Terms of Service.
+            By accessing or using LegalMint AI (&quot;the Platform&quot;), you agree to be bound by these Terms of Service.
             If you do not agree, do not use the Platform. These terms are governed by the Indian Contract Act, 1872.
           </p>
 
@@ -38,14 +38,14 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">3. Description of Service</h2>
           <p className="text-slate-700 mb-4">
-            LegalEase AI provides AI-powered legal document generation, compliance tracking, and regulatory alerting
+            LegalMint AI provides AI-powered legal document generation, compliance tracking, and regulatory alerting
             services exclusively for Indian businesses. The Platform uses artificial intelligence to generate draft
             legal documents based on user-provided information and templates.
           </p>
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">4. No Legal Advice</h2>
           <p className="text-slate-700 mb-4">
-            <strong>LegalEase AI is NOT a law firm and does NOT provide legal advice.</strong> All documents generated
+            <strong>LegalMint AI is NOT a law firm and does NOT provide legal advice.</strong> All documents generated
             by the Platform are drafts and should be reviewed by a qualified advocate enrolled with the Bar Council of
             India before use. The Platform does not create an attorney-client relationship.
           </p>
@@ -70,7 +70,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">7. Intellectual Property</h2>
           <p className="text-slate-700 mb-4">
-            The Platform, including its software, templates, algorithms, and content, is owned by LegalEase AI and
+            The Platform, including its software, templates, algorithms, and content, is owned by LegalMint AI and
             protected under the Indian Copyright Act, 1957. You retain ownership of documents you generate, but
             grant us a license to use anonymized data for service improvement.
           </p>
@@ -84,14 +84,14 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">9. Limitation of Liability</h2>
           <p className="text-slate-700 mb-4">
-            To the maximum extent permitted under Indian law, LegalEase AI shall not be liable for any indirect,
+            To the maximum extent permitted under Indian law, LegalMint AI shall not be liable for any indirect,
             incidental, special, consequential, or punitive damages arising from your use of the Platform, including
             but not limited to losses from use of AI-generated documents without legal review.
           </p>
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">10. Indemnification</h2>
           <p className="text-slate-700 mb-4">
-            You agree to indemnify and hold harmless LegalEase AI from any claims, damages, or expenses arising from
+            You agree to indemnify and hold harmless LegalMint AI from any claims, damages, or expenses arising from
             your use of the Platform, violation of these terms, or use of generated documents without professional
             legal review.
           </p>
@@ -124,7 +124,7 @@ export default function TermsPage() {
 
           <h2 className="text-xl font-semibold text-slate-900 mt-8 mb-4">15. Contact</h2>
           <p className="text-slate-700 mb-4">
-            For questions about these terms, contact us at <strong>legal@legalease.ai</strong> or write to our
+            For questions about these terms, contact us at <strong>legal@legalmint.ai</strong> or write to our
             Grievance Officer at the address provided in our Privacy Policy.
           </p>
         </div>
@@ -133,7 +133,7 @@ export default function TermsPage() {
       <footer className="border-t py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-slate-500 text-center">
-            © 2026 LegalEase AI. Not a substitute for legal advice. Consult a qualified advocate.
+            © 2026 LegalMint AI. Not a substitute for legal advice. Consult a qualified advocate.
           </p>
         </div>
       </footer>

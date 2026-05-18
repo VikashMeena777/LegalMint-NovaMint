@@ -38,7 +38,7 @@ export default async function DashboardLayout({
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900 dark:text-white hidden sm:block">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900 dark:text-white hidden sm:block">LegalMint AI</span>
             </Link>
             <div className="flex items-center gap-3">
               <ThemeToggle />

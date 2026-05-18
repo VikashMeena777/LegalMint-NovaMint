@@ -9,7 +9,7 @@
 
 ## 1. Feature Overview and Purpose
 
-The Compliance Mapping Engine is the algorithmic core of LegalEase AI. It takes the structured `BusinessProfile` produced during onboarding and maps it against a comprehensive database of legal requirements across jurisdictions, producing a personalized "Compliance Roadmap." The engine determines which regulations apply, prioritizes compliance actions, and surfaces the most urgent obligations first.
+The Compliance Mapping Engine is the algorithmic core of LegalMint AI. It takes the structured `BusinessProfile` produced during onboarding and maps it against a comprehensive database of legal requirements across jurisdictions, producing a personalized "Compliance Roadmap." The engine determines which regulations apply, prioritizes compliance actions, and surfaces the most urgent obligations first.
 
 ### Key Objectives
 - Automatically determine all applicable regulations based on business profile + jurisdiction data

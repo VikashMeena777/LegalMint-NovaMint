@@ -78,7 +78,7 @@ function ResetForm() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="you@company.com"
               required
             />
@@ -102,7 +102,7 @@ function ResetForm() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Min. 8 characters"
               required
               minLength={8}
@@ -117,7 +117,7 @@ function ResetForm() {
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Re-enter password"
               required
               minLength={8}
@@ -145,7 +145,7 @@ export default function ResetPasswordPage() {
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">L</span>
             </div>
-            <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+            <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
           </Link>
           <h1 className="text-2xl font-bold text-slate-900">Reset Password</h1>
           <p className="text-slate-600 mt-1">Enter your email to receive a reset link</p>

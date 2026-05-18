@@ -123,14 +123,14 @@ export default function OnboardingPage() {
               }, 500);
             }
           } else {
-            addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+            addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
           }
         } catch {
           localStorage.removeItem("onboarding_progress");
-          addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+          addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
         }
       } else {
-        addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+        addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
       }
     }
   }, []);

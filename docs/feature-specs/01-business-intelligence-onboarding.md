@@ -9,7 +9,7 @@
 
 ## 1. Feature Overview and Purpose
 
-The Business Intelligence Onboarding module serves as the primary entry point for new LegalEase AI users. It replaces a traditional static form with an AI-driven conversational interview that collects structured business intelligence. The AI interviewer dynamically adapts questions based on prior answers, asks contextual follow-ups, and validates inputs in real time.
+The Business Intelligence Onboarding module serves as the primary entry point for new LegalMint AI users. It replaces a traditional static form with an AI-driven conversational interview that collects structured business intelligence. The AI interviewer dynamically adapts questions based on prior answers, asks contextual follow-ups, and validates inputs in real time.
 
 By the end of the onboarding flow, the system possesses enough structured data about the user's business to generate a personalized compliance roadmap, auto-fill document templates, and configure jurisdiction-aware monitoring.
 

@@ -11,7 +11,7 @@ export default function Home() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
             </div>
             <div className="flex items-center gap-4">
               <Link href="/login" className="text-sm text-slate-600 hover:text-slate-900">
@@ -149,7 +149,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold text-white mb-4">Ready to get compliant?</h2>
           <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
-            Join thousands of Indian businesses using LegalEase AI to stay compliant and protected.
+            Join thousands of Indian businesses using LegalMint AI to stay compliant and protected.
           </p>
           <Link
             href="/signup"
@@ -168,7 +168,7 @@ export default function Home() {
               <div className="w-6 h-6 bg-blue-600 rounded flex items-center justify-center">
                 <span className="text-white font-bold text-xs">L</span>
               </div>
-              <span className="font-semibold text-slate-900">LegalEase AI</span>
+              <span className="font-semibold text-slate-900">LegalMint AI</span>
             </div>
             <div className="flex items-center gap-6 text-sm text-slate-500">
               <Link href="/terms" className="hover:text-slate-900">Terms</Link>
@@ -176,7 +176,7 @@ export default function Home() {
               <Link href="/disclaimer" className="hover:text-slate-900">Disclaimer</Link>
             </div>
             <p className="text-sm text-slate-500">
-              © 2026 LegalEase AI. Not a substitute for legal advice.
+              © 2026 LegalMint AI. Not a substitute for legal advice.
             </p>
           </div>
         </div>

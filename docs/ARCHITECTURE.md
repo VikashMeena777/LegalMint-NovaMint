@@ -1,11 +1,11 @@
-# LegalEase AI — System Architecture Document
+# LegalMint AI — System Architecture Document
 
 **Version:** 2.0 (India Edition)  
 **Last Updated:** May 2026  
 **Status:** Production  
 **Market:** India Only
 
-LegalEase AI is a SaaS platform that automates Indian legal document generation, compliance checking, and contract analysis for businesses operating in India. It leverages LLM-based pipelines (NVIDIA NIM + Groq) to produce jurisdiction-aware legal documents backed by structured validation and RAG-augmented retrieval.
+LegalMint AI is a SaaS platform that automates Indian legal document generation, compliance checking, and contract analysis for businesses operating in India. It leverages LLM-based pipelines (NVIDIA NIM + Groq) to produce jurisdiction-aware legal documents backed by structured validation and RAG-augmented retrieval.
 
 ---
 
@@ -247,7 +247,7 @@ Input → Context Builder → RAG Retrieval (pgvector) → Prompt Assembly
 ### 6.3 Prompt Engineering
 
 System prompts follow 4-layer architecture:
-1. **Base Persona** — LegalEase AI identity, disclaimers, boundaries
+1. **Base Persona** — LegalMint AI identity, disclaimers, boundaries
 2. **Legal Domain Context** — Indian legal principles, definitions
 3. **Jurisdiction Overlay** — Central/State-specific statutes
 4. **Use-Case Instructions** — Task-specific (draft ToS, map compliance, etc.)
@@ -337,7 +337,7 @@ Quality gate: ESLint → TypeScript → Prettier → Tests → Build → Deploy
 ## 11. File Structure
 
 ```
-LegalEase-AI/
+LegalMint/
 ├── apps/web/
 │   └── src/
 │       ├── app/                    # Next.js App Router

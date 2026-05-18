@@ -8,4 +8,4 @@ Disallow: /billing
 Disallow: /settings
 Disallow: /api/
 
-Sitemap: https://legalease.ai/sitemap.xml
+Sitemap: https://legalmint.novamintnetworks.in/sitemap.xml

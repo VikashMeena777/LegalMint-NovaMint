@@ -1,4 +1,4 @@
-# LegalEase AI — AI Engine Architecture
+# LegalMint AI — AI Engine Architecture
 
 **Version:** 1.0.0  
 **Last Updated:** 2026-05-13  
@@ -216,7 +216,7 @@ Key schemas:
 │         ▼                        ▼                │
 │  ┌──────────────────────────────────────────────┐ │
 │  │          VECTOR DATABASE (Pinecone)          │ │
-│  │  • Index: legalease-prod                     │ │
+│  │  • Index: legalmint-prod                     │ │
 │  │  • Dimension: 3072 (text-embedding-3-large)  │ │
 │  │  • Metric: cosine                            │ │
 │  │  • Namespaces: regulations, templates,       │ │
@@ -489,7 +489,7 @@ legal_templates/
 **Mandatory Disclaimer Injection (EVERY response):**
 
 ```
-DISCLAIMER: LegalEase AI is an automated document generation tool, not a law
+DISCLAIMER: LegalMint AI is an automated document generation tool, not a law
 firm. The documents generated are based on general legal templates and may not
 address all specific legal requirements for your jurisdiction or business case.
 You should consult with a qualified attorney licensed in your jurisdiction

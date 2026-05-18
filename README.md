@@ -1,4 +1,4 @@
-# LegalEase AI — India's Legal Compliance Platform
+# LegalMint AI — India's Legal Compliance Platform
 
 > AI-powered legal document generation and compliance tracking for Indian businesses.
 
@@ -84,7 +84,7 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 ## Project Structure
 
 ```
-LegalEase-AI/
+LegalMint/
 ├── apps/web/                    # Next.js application
 │   └── src/
 │       ├── app/                 # App Router pages

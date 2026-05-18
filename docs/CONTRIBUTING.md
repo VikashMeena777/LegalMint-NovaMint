@@ -1,6 +1,6 @@
-# Contributing to LegalEase AI
+# Contributing to LegalMint AI
 
-Welcome! This guide covers everything you need to contribute to LegalEase AI, whether you're a human developer or an AI agent in the swarm.
+Welcome! This guide covers everything you need to contribute to LegalMint AI, whether you're a human developer or an AI agent in the swarm.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Welcome! This guide covers everything you need to contribute to LegalEase AI, wh
 ```bash
 # 1. Clone the repository
 git clone <repo-url>
-cd LegalEase-AI
+cd LegalMint
 
 # 2. Copy environment variables
 cp .env.example .env
@@ -60,7 +60,7 @@ The app will be available at `http://localhost:3000`. Mailpit (email testing) is
 Copy `.env.example` to `.env` and fill in the required values. For local development, the default `DATABASE_URL` from `docker-compose.yml` works:
 
 ```
-DATABASE_URL="postgresql://legalease:legalease_dev@localhost:5432/legalease"
+DATABASE_URL="postgresql://legalmint:legalease_dev@localhost:5432/legalmint"
 REDIS_URL="redis://localhost:6379"
 ```
 
@@ -69,7 +69,7 @@ For AI features (document generation, compliance analysis), you will need a vali
 ## Project Structure
 
 ```
-LegalEase-AI/
+LegalMint/
 ├── .github/workflows/    # CI/CD pipelines
 ├── agent-swarm/          # AI agent swarm definitions and task templates
 ├── apps/
@@ -261,7 +261,7 @@ npm run lint:fix     # ESLint auto-fix
 
 ## Agent Swarm Workflow
 
-LegalEase AI uses an agent swarm architecture for AI-assisted development. Agents are task-specific AI instances that work on isolated parts of the codebase.
+LegalMint AI uses an agent swarm architecture for AI-assisted development. Agents are task-specific AI instances that work on isolated parts of the codebase.
 
 ### How Agents Are Delegated Tasks
 

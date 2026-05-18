@@ -188,9 +188,9 @@ export default function SettingsPage() {
       <div className="bg-white border border-slate-200 rounded-xl p-6">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">About</h2>
         <div className="space-y-2 text-sm text-slate-600">
-          <p><strong>LegalEase AI</strong> v2.0 (India Edition)</p>
+          <p><strong>LegalMint AI</strong> v2.0 (India Edition)</p>
           <p>Built for Indian businesses. Compliant with DPDP Act 2023.</p>
-          <p className="text-slate-500">LegalEase AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
+          <p className="text-slate-500">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
         </div>
       </div>
     </div>

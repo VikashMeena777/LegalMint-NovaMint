@@ -1,4 +1,4 @@
-# LegalEase AI — Product Requirements Document (PRD)
+# LegalMint AI — Product Requirements Document (PRD)
 
 > **Version:** 2.0 (India Edition)  
 > **Status:** Draft  
@@ -11,7 +11,7 @@
 
 ### 1.1 Vision
 
-LegalEase AI transforms legal compliance from a reactive, expensive bottleneck into a proactive, intelligent, and affordable self-service experience for Indian businesses. Every business in India — from solo founders in Bangalore to MSMEs in Tier-2 cities — can operate with full legal confidence, protected by continuously updated, India-specific compliance infrastructure.
+LegalMint AI transforms legal compliance from a reactive, expensive bottleneck into a proactive, intelligent, and affordable self-service experience for Indian businesses. Every business in India — from solo founders in Bangalore to MSMEs in Tier-2 cities — can operate with full legal confidence, protected by continuously updated, India-specific compliance infrastructure.
 
 ### 1.2 Mission
 
@@ -19,7 +19,7 @@ Democratize access to business-critical legal documentation and compliance intel
 
 ### 1.3 Core Value Proposition
 
-| For... | LegalEase AI delivers... | Instead of... |
+| For... | LegalMint AI delivers... | Instead of... |
 |---|---|---|
 | **Solo Founders** | Complete compliant Indian legal stack in under 10 minutes | Spending ₹50,000–₹2,00,000 on advocates and waiting 3–4 weeks |
 | **MSME Owners** | Continuous compliance monitoring with alerts when Indian laws change | Manually tracking MCA, GSTN, and state portal updates |

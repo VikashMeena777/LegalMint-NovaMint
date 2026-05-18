@@ -1,4 +1,4 @@
-# LegalEase AI — API Contract Specification
+# LegalMint AI — API Contract Specification
 
 **Version:** 1.0  
 **Last Updated:** May 2026  
@@ -1681,7 +1681,7 @@ z.object({
 1. Load document, validate ownership, status must be `PUBLISHED`.
 2. Look up `PublishedDocument` record for CDN path.
 3. Generate embed HTML (a `<div>` with unique ID) + `<script>` tag that loads the document renderer from CDN.
-4. The embed script uses an iframe pointing to `https://cdn.legalease.ai/embed/{slug}` with the document content pre-rendered.
+4. The embed script uses an iframe pointing to `https://cdn.legalmint.ai/embed/{slug}` with the document content pre-rendered.
 
 ---
 

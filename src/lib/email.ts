@@ -4,7 +4,7 @@ const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = "LegalEase AI <noreply@legalease.ai>";
+const FROM_EMAIL = "LegalMint AI <noreply@legalmint.ai>";
 
 export async function sendWelcomeEmail(to: string, name: string) {
   if (!resend) {
@@ -15,9 +15,9 @@ export async function sendWelcomeEmail(to: string, name: string) {
   return resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: "Welcome to LegalEase AI — Your compliance journey starts here",
+    subject: "Welcome to LegalMint AI — Your compliance journey starts here",
     html: `
-      <h1>Welcome to LegalEase AI, ${name}!</h1>
+      <h1>Welcome to LegalMint AI, ${name}!</h1>
       <p>Thank you for joining India's AI-powered legal compliance platform.</p>
       <h2>Getting Started</h2>
       <ol>
@@ -27,7 +27,7 @@ export async function sendWelcomeEmail(to: string, name: string) {
       </ol>
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/onboarding">Start Onboarding →</a></p>
       <hr>
-      <p style="font-size: 12px; color: #666;">LegalEase AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
+      <p style="font-size: 12px; color: #666;">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
     `,
   });
 }
@@ -52,7 +52,7 @@ export async function sendComplianceAlertEmail(
       <p>${description}</p>
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/compliance">View Compliance Dashboard →</a></p>
       <hr>
-      <p style="font-size: 12px; color: #666;">You're receiving this because you have compliance alerts enabled on LegalEase AI.</p>
+      <p style="font-size: 12px; color: #666;">You're receiving this because you have compliance alerts enabled on LegalMint AI.</p>
     `,
   });
 }
@@ -66,7 +66,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
   return resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: "Reset your LegalEase AI password",
+    subject: "Reset your LegalMint AI password",
     html: `
       <h2>Password Reset Request</h2>
       <p>Click the link below to reset your password:</p>
@@ -96,7 +96,7 @@ export async function sendDocumentReadyEmail(
       <p>Your document <strong>${documentTitle}</strong> has been generated successfully.</p>
       <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/documents">View Documents →</a></p>
       <hr>
-      <p style="font-size: 12px; color: #666;">LegalEase AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
+      <p style="font-size: 12px; color: #666;">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
     `,
   });
 }

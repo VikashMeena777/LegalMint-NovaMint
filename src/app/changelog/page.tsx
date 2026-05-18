@@ -49,7 +49,7 @@ export default function ChangelogPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
             </Link>
             <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
               Back to Home
@@ -60,7 +60,7 @@ export default function ChangelogPage() {
 
       <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Changelog</h1>
-        <p className="text-slate-600 mb-12">What&apos;s new in LegalEase AI</p>
+        <p className="text-slate-600 mb-12">What&apos;s new in LegalMint AI</p>
 
         <div className="space-y-8">
           {CHANGELOG.map((entry) => {
@@ -86,7 +86,7 @@ export default function ChangelogPage() {
       <footer className="border-t py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-slate-500 text-center">
-            © 2026 LegalEase AI. Not a substitute for legal advice.
+            © 2026 LegalMint AI. Not a substitute for legal advice.
           </p>
         </div>
       </footer>

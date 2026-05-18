@@ -13,33 +13,33 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "LegalEase AI — India's AI-Powered Legal Compliance Platform",
-    template: "%s | LegalEase AI",
+    default: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
+    template: "%s | LegalMint AI",
   },
   description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations. DPDP Act 2023, IT Act, GST, and more.",
   keywords: ["legal compliance", "India", "DPDP Act", "legal documents", "AI", "business compliance", "GST", "IT Act", "privacy policy", "terms of service"],
-  authors: [{ name: "LegalEase AI" }],
-  creator: "LegalEase AI",
-  publisher: "LegalEase AI",
+  authors: [{ name: "LegalMint AI" }],
+  creator: "LegalMint AI",
+  publisher: "LegalMint AI",
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://legalease.ai",
-    siteName: "LegalEase AI",
-    title: "LegalEase AI — India's AI-Powered Legal Compliance Platform",
+    url: "https://legalmint.ai",
+    siteName: "LegalMint AI",
+    title: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
     description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "LegalEase AI",
+        alt: "LegalMint AI",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LegalEase AI — India's AI-Powered Legal Compliance Platform",
+    title: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
     description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations.",
     images: ["/og-image.png"],
   },
@@ -67,9 +67,9 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    name: "LegalEase AI",
+    name: "LegalMint AI",
     description: "India's AI-powered legal compliance platform for automated document generation and regulatory tracking.",
-    url: "https://legalease.ai",
+    url: "https://legalmint.ai",
     applicationCategory: "Legal",
     operatingSystem: "Web",
     offers: {

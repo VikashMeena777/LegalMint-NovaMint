@@ -63,7 +63,7 @@ export async function generateComplianceRoadmap(params: {
 }): Promise<string> {
   const { businessProfile, jurisdictions } = params;
 
-  const systemPrompt = `You are LegalEase AI, an Indian compliance mapping specialist. Generate a detailed compliance roadmap for an Indian business based on their profile and applicable jurisdictions.
+  const systemPrompt = `You are LegalMint AI, an Indian compliance mapping specialist. Generate a detailed compliance roadmap for an Indian business based on their profile and applicable jurisdictions.
 
 Output a JSON object with:
 - applicableRegulations: Array of Indian regulations that apply
@@ -116,7 +116,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 }
 
 function getSystemPrompt(documentType: string, jurisdictions: string[]): string {
-  const base = `You are LegalEase AI, an automated legal document assistant for Indian businesses. You are NOT a lawyer and do NOT provide legal advice. Generate a professionally formatted, jurisdiction-aware legal document for Indian businesses.`;
+  const base = `You are LegalMint AI, an automated legal document assistant for Indian businesses. You are NOT a lawyer and do NOT provide legal advice. Generate a professionally formatted, jurisdiction-aware legal document for Indian businesses.`;
 
   const jurisdictionContext = `JURISDICTION: ${jurisdictions.join(", ")} (India)
 - Use Indian legal terminology: "Data Principal", "Data Fiduciary", "Advocate", "Private Limited Company"

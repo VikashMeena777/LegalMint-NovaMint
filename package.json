@@ -1,8 +1,8 @@
 {
-  "name": "legalease-ai",
+  "name": "legalmint-ai",
   "version": "2.0.0",
   "private": true,
-  "description": "LegalEase AI - India's AI-powered legal compliance and document generation platform",
+  "description": "LegalMint AI - India's AI-powered legal compliance and document generation platform",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

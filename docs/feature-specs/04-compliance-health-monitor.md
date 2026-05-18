@@ -9,7 +9,7 @@
 
 ## 1. Feature Overview and Purpose
 
-The Compliance Health Monitor is the ongoing surveillance and alert system of LegalEase AI. It continuously tracks the user's compliance posture by computing a real-time health score, monitoring regulatory changes, and delivering actionable alerts. Where the Compliance Mapping Engine provides the static roadmap, the Health Monitor provides the dynamic "pulse" — ensuring users stay compliant as their business and the regulatory landscape evolve.
+The Compliance Health Monitor is the ongoing surveillance and alert system of LegalMint AI. It continuously tracks the user's compliance posture by computing a real-time health score, monitoring regulatory changes, and delivering actionable alerts. Where the Compliance Mapping Engine provides the static roadmap, the Health Monitor provides the dynamic "pulse" — ensuring users stay compliant as their business and the regulatory landscape evolve.
 
 ### Key Objectives
 - Compute and display a real-time Compliance Health Score
@@ -262,7 +262,7 @@ PM = (filledFields / totalTrackedFields) × 100
 - **Digest structure:**
 
 ```
-Subject: LegalEase AI Compliance Digest — May 13, 2026
+Subject: LegalMint AI Compliance Digest — May 13, 2026
 
 ┌──────────────────────────────────────────────────┐
 │  LEGALEASE AI                                     │

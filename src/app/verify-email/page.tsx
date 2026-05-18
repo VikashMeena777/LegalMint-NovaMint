@@ -32,7 +32,7 @@ export default function VerifyEmailPage() {
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">L</span>
           </div>
-          <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+          <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
         </Link>
 
         {status === "checking" && (

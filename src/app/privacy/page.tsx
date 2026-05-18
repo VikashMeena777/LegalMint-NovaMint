@@ -10,7 +10,7 @@ export default function PrivacyPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
             </Link>
             <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
               Back to Home
@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
             <p className="text-sm text-blue-800">
               <strong>DPDP Act 2023 Compliance:</strong> This Privacy Policy is drafted in accordance with the
-              Digital Personal Data Protection Act, 2023 (India). LegalEase AI acts as a Data Fiduciary.
+              Digital Personal Data Protection Act, 2023 (India). LegalMint AI acts as a Data Fiduciary.
             </p>
           </div>
 
@@ -124,8 +124,8 @@ export default function PrivacyPage() {
           </p>
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-4">
             <p className="text-sm text-slate-700">
-              <strong>Grievance Officer, LegalEase AI</strong><br />
-              Email: <strong>privacy@legalease.ai</strong><br />
+              <strong>Grievance Officer, LegalMint AI</strong><br />
+              Email: <strong>privacy@legalmint.ai</strong><br />
               Response time: Within 72 hours
             </p>
           </div>
@@ -144,7 +144,7 @@ export default function PrivacyPage() {
       <footer className="border-t py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-slate-500 text-center">
-            © 2026 LegalEase AI. Data stored in India. Compliant with DPDP Act 2023.
+            © 2026 LegalMint AI. Data stored in India. Compliant with DPDP Act 2023.
           </p>
         </div>
       </footer>

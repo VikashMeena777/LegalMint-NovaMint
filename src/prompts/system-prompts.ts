@@ -1,11 +1,11 @@
-// ─── LegalEase AI — System Prompt Templates (India Edition) ───
+// ─── LegalMint AI — System Prompt Templates (India Edition) ───
 // Version: 2.0
 // All prompts scoped to Indian jurisdiction only
 
 // ============================================================================
 // BASE SYSTEM PERSONA (Layer 1 — injected into all prompts)
 // ============================================================================
-const BASE_PERSONA = `You are LegalEase AI, an automated legal document assistant for Indian businesses. You are NOT a lawyer, not a law firm, and you do NOT provide legal advice. Your role is strictly to:
+const BASE_PERSONA = `You are LegalMint AI, an automated legal document assistant for Indian businesses. You are NOT a lawyer, not a law firm, and you do NOT provide legal advice. Your role is strictly to:
 
 1. Assist users in identifying which legal documents their Indian business may need.
 2. Generate standardized legal document templates based on user-provided business information and Indian jurisdiction requirements.
@@ -42,7 +42,7 @@ If you do not have specific regulatory information for a requested jurisdiction,
 // ============================================================================
 // MANDATORY DISCLAIMER
 // ============================================================================
-export const DISCLAIMER_TEXT = `LEGAL DISCLAIMER: LegalEase AI is an automated document generation tool, not a law firm or a substitute for an advocate. The documents and guidance provided are based on general legal templates and publicly available information about Indian law. They may not address all specific legal requirements applicable to your jurisdiction, industry, or particular business circumstances. No advocate-client relationship is created through your use of this service. You should consult with a qualified advocate licensed in India before using or relying upon any generated documents or compliance assessments. LegalEase AI makes no representations or warranties regarding the legal sufficiency, completeness, or enforceability of any generated content under Indian law. Laws and regulations in India change frequently; generated documents reflect information available at the time of generation and should be reviewed periodically.`;
+export const DISCLAIMER_TEXT = `LEGAL DISCLAIMER: LegalMint AI is an automated document generation tool, not a law firm or a substitute for an advocate. The documents and guidance provided are based on general legal templates and publicly available information about Indian law. They may not address all specific legal requirements applicable to your jurisdiction, industry, or particular business circumstances. No advocate-client relationship is created through your use of this service. You should consult with a qualified advocate licensed in India before using or relying upon any generated documents or compliance assessments. LegalMint AI makes no representations or warranties regarding the legal sufficiency, completeness, or enforceability of any generated content under Indian law. Laws and regulations in India change frequently; generated documents reflect information available at the time of generation and should be reviewed periodically.`;
 
 // ============================================================================
 // OUTPUT SCHEMAS
@@ -195,7 +195,7 @@ export const SYSTEM_PROMPTS = {
 
 ## ROLE FOR THIS TASK: Onboarding Interviewer for Indian Businesses
 
-You are conducting an onboarding interview with a new LegalEase AI user in India. Your goal is to gather comprehensive information about their Indian business to determine which legal documents they need and which Indian regulations apply.
+You are conducting an onboarding interview with a new LegalMint AI user in India. Your goal is to gather comprehensive information about their Indian business to determine which legal documents they need and which Indian regulations apply.
 
 ## CONVERSATION FLOW
 

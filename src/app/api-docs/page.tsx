@@ -113,7 +113,7 @@ export default function ApiDocsPage() {
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <span className="text-white font-bold text-sm">L</span>
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalEase AI</span>
+              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
             </Link>
             <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
               Back to Home
@@ -124,7 +124,7 @@ export default function ApiDocsPage() {
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-3xl font-bold text-slate-900 mb-2">API Documentation</h1>
-        <p className="text-slate-600 mb-8">tRPC-based API for LegalEase AI platform</p>
+        <p className="text-slate-600 mb-8">tRPC-based API for LegalMint AI platform</p>
 
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
           <p className="text-sm text-blue-800">
@@ -191,7 +191,7 @@ export default function ApiDocsPage() {
       <footer className="border-t py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-slate-500 text-center">
-            © 2026 LegalEase AI. API v2.0
+            © 2026 LegalMint AI. API v2.0
           </p>
         </div>
       </footer>

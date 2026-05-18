@@ -61,7 +61,7 @@ export async function POST(req: Request) {
       order_meta: {
         return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing?order_id={order_id}`,
       },
-      order_note: `LegalEase AI ${planId} plan subscription`,
+      order_note: `LegalMint AI ${planId} plan subscription`,
     };
 
     const response = await fetch(`${CASHFREE_BASE_URL}/pg/orders`, {
