@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { Scale, Send, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 
 interface Message {
   role: "ai" | "user";
@@ -254,122 +261,148 @@ export default function OnboardingPage() {
   const progress = ((currentStep) / QUESTIONS.length) * 100;
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-bold text-slate-900">Business Onboarding</h1>
-          <span className="text-sm text-slate-500">{currentStep + 1} of {QUESTIONS.length}</span>
-        </div>
-        <div className="w-full bg-slate-200 rounded-full h-2">
-          <div
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="bg-white rounded-xl border border-slate-200 p-4 mb-4 min-h-[400px] max-h-[500px] overflow-y-auto">
-        {messages.map((msg, i) => (
-          <div key={i} className={`mb-4 ${msg.role === "user" ? "text-right" : ""}`}>
-            <div
-              className={`inline-block max-w-[85%] px-4 py-2 rounded-lg text-sm whitespace-pre-wrap ${
-                msg.role === "user"
-                  ? "bg-blue-600 text-white rounded-br-none"
-                  : "bg-slate-100 text-slate-800 rounded-bl-none"
-              }`}
-            >
-              {msg.content}
-            </div>
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+            <Scale className="w-5 h-5 text-white" />
           </div>
-        ))}
-        <div ref={messagesEndRef} />
+          <span className="font-bold text-xl text-foreground hidden sm:block">
+            Legal<span className="text-primary">Mint</span> AI
+          </span>
+        </Link>
       </div>
 
-      {currentStep < QUESTIONS.length && (
-        <div className="bg-white rounded-xl border border-slate-200 p-4">
-          {currentQuestion?.type === "multiselect" ? (
-            <div className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                {currentQuestion.options?.map((opt) => (
-                  <button
-                    key={opt}
-                    onClick={() => {
-                      setSelectedOptions((prev) =>
-                        prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
-                      );
-                    }}
-                    className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                      selectedOptions.includes(opt)
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-slate-700 border-slate-300 hover:border-blue-400"
-                    }`}
-                  >
-                    {opt}
-                  </button>
-                ))}
-              </div>
-              <button
-                onClick={handleNext}
-                disabled={selectedOptions.length === 0}
-                className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      {/* Progress */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-lg font-semibold text-foreground">Business Onboarding</h1>
+          <Badge variant="default">{currentStep + 1} / {QUESTIONS.length}</Badge>
+        </div>
+        <Progress value={progress} color="default" size="sm" />
+      </div>
+
+      {/* Chat Messages */}
+      <Card className="border-border/50">
+        <CardContent className="p-4 min-h-[400px] max-h-[500px] overflow-y-auto space-y-4">
+          {messages.map((msg, i) => (
+            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`max-w-[85%] px-4 py-3 rounded-xl text-sm whitespace-pre-wrap leading-relaxed ${
+                  msg.role === "user"
+                    ? "gradient-primary text-white rounded-br-md"
+                    : "bg-muted text-muted-foreground rounded-bl-md"
+                }`}
               >
-                Continue
-              </button>
+                {msg.content}
+              </div>
             </div>
-          ) : currentQuestion?.type === "boolean" ? (
-            <div className="space-y-3">
+          ))}
+          {loading && (
+            <div className="flex justify-start">
+              <div className="bg-muted text-muted-foreground px-4 py-3 rounded-xl rounded-bl-md flex items-center gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </CardContent>
+      </Card>
+
+      {/* Input Area */}
+      {currentStep < QUESTIONS.length && (
+        <Card className="border-border/50">
+          <CardContent className="p-4">
+            {currentQuestion?.type === "multiselect" ? (
+              <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                  {currentQuestion.options?.map((opt) => (
+                    <button
+                      key={opt}
+                      onClick={() => {
+                        setSelectedOptions((prev) =>
+                          prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
+                        );
+                      }}
+                      className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
+                        selectedOptions.includes(opt)
+                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                          : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                      }`}
+                    >
+                      {selectedOptions.includes(opt) && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />}
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                <Button
+                  onClick={handleNext}
+                  disabled={selectedOptions.length === 0}
+                  className="w-full"
+                >
+                  Continue
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              </div>
+            ) : currentQuestion?.type === "boolean" ? (
               <div className="flex gap-3">
-                <button
+                <Button
+                  variant="outline"
+                  className="flex-1 py-6 text-base"
                   onClick={() => {
                     setInputValue("yes");
                     setTimeout(handleNext, 100);
                   }}
-                  className="flex-1 py-2.5 rounded-lg font-medium border border-slate-300 hover:bg-green-50 hover:border-green-400 transition-colors"
                 >
+                  <CheckCircle2 className="w-5 h-5 mr-2 text-emerald-500" />
                   Yes
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1 py-6 text-base"
                   onClick={() => {
                     setInputValue("no");
                     setTimeout(handleNext, 100);
                   }}
-                  className="flex-1 py-2.5 rounded-lg font-medium border border-slate-300 hover:bg-red-50 hover:border-red-400 transition-colors"
                 >
                   No
-                </button>
+                </Button>
               </div>
-            </div>
-          ) : (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleNext()}
-                className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                placeholder="Type your answer..."
-                autoFocus
-              />
-              <button
-                onClick={handleNext}
-                disabled={!inputValue.trim() || loading}
-                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Processing..." : "Send"}
-              </button>
-            </div>
-          )}
-        </div>
+            ) : (
+              <div className="flex gap-2">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleNext()}
+                  placeholder="Type your answer..."
+                  autoFocus
+                  className="flex-1"
+                />
+                <Button
+                  onClick={handleNext}
+                  disabled={!inputValue.trim() || loading}
+                  size="icon"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
+      {/* Complete */}
       {currentStep >= QUESTIONS.length && (
         <div className="text-center">
-          <button
+          <Button
             onClick={() => router.push("/dashboard")}
-            className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            size="lg"
           >
             Go to Dashboard
-          </button>
+            <ArrowRight className="w-5 h-5 ml-2" />
+          </Button>
         </div>
       )}
     </div>

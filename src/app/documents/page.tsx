@@ -6,11 +6,18 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { DocumentPreview } from "@/components/DocumentPreview";
 import { Skeleton } from "@/components/Skeleton";
-import { Lock, ClipboardList, Cookie, User, Handshake, Wallet, Megaphone, File, Search, Download, Trash2, Loader2 } from "lucide-react";
+import { Lock, ClipboardList, Cookie, User, Handshake, Wallet, Megaphone, File, Search, Download, Trash2, Loader2, Eye, MoreVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const DOCUMENT_TYPES = [
   { type: "PRIVACY_POLICY", label: "Privacy Policy", icon: Lock, color: "text-sky-600", bgColor: "bg-sky-100 dark:bg-sky-900/30", desc: "DPDP Act 2023 compliant" },
@@ -241,6 +248,15 @@ export default function DocumentsPage() {
     return `${companyName} — ${titles[type] || type}`;
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "DRAFT": return <Badge variant="warning">Draft</Badge>;
+      case "PUBLISHED": return <Badge variant="success">Published</Badge>;
+      case "ARCHIVED": return <Badge variant="default">Archived</Badge>;
+      default: return <Badge>{status}</Badge>;
+    }
+  };
+
   if (templatesLoading || docsLoading) {
     return (
       <div className="space-y-6">
@@ -250,7 +266,7 @@ export default function DocumentsPage() {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-6 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl space-y-3">
+            <div key={i} className="p-6 bg-card border border-border rounded-xl space-y-3">
               <Skeleton className="h-10 w-10 rounded-lg" />
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-48" />
@@ -272,7 +288,7 @@ export default function DocumentsPage() {
         {DOCUMENT_TYPES.map((doc) => (
           <Card
             key={doc.type}
-            className="group cursor-pointer hover-lift border-border/50 hover:border-primary/30 transition-all"
+            className="group cursor-pointer border-border/50 hover:border-primary/30 hover:shadow-lg transition-all"
             onClick={() => handleGenerate(doc.type)}
           >
             <CardContent className="p-5">
@@ -321,26 +337,28 @@ export default function DocumentsPage() {
               leftIcon={<Search className="w-4 h-4" />}
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="h-10 px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="all">All Status</option>
-            <option value="DRAFT">Draft</option>
-            <option value="PUBLISHED">Published</option>
-            <option value="ARCHIVED">Archived</option>
-          </select>
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="h-10 px-3 py-2 rounded-lg border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="all">All Types</option>
-            {templates?.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="DRAFT">Draft</SelectItem>
+              <SelectItem value="PUBLISHED">Published</SelectItem>
+              <SelectItem value="ARCHIVED">Archived</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="All Types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Types</SelectItem>
+              {templates?.map((t) => (
+                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {allDocs.length === 0 ? (
@@ -384,34 +402,37 @@ export default function DocumentsPage() {
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <Badge variant={doc.status === "DRAFT" ? "warning" : doc.status === "PUBLISHED" ? "success" : "default"}>
-                        {doc.status}
-                      </Badge>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(doc.status)}
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setPreviewDoc({ title: doc.title, content: doc.content })}
                       >
+                        <Eye className="w-4 h-4 mr-1.5" />
                         Preview
                       </Button>
-                      <div className="relative group">
-                        <Button variant="ghost" size="sm">
-                          Export
-                        </Button>
-                        <div className="absolute right-0 mt-1 w-36 bg-popover border border-border rounded-lg shadow-lg hidden group-hover:block z-10">
-                          {(["DOCX", "HTML", "MARKDOWN", "PDF"] as const).map((format) => (
-                            <button
-                              key={format}
-                              onClick={() => handleExport(doc, format)}
-                              disabled={exporting === doc.id}
-                              className="block w-full text-left px-4 py-2 text-sm text-popover-foreground hover:bg-accent disabled:opacity-50"
-                            >
-                              {exporting === doc.id ? "Exporting..." : `Export as ${format}`}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleExport(doc, "PDF")}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Export PDF
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport(doc, "DOCX")}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Export DOCX
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleExport(doc, "HTML")}>
+                            <Download className="w-4 h-4 mr-2" />
+                            Export HTML
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
                 </div>

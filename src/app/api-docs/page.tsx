@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { ArrowLeft, Scale, Globe, Key, Lock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Endpoint {
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -96,76 +99,96 @@ const ENDPOINTS: Endpoint[] = [
 ];
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "bg-green-100 text-green-700",
-  POST: "bg-blue-100 text-blue-700",
-  PUT: "bg-amber-100 text-amber-700",
-  DELETE: "bg-red-100 text-red-700",
-  PATCH: "bg-purple-100 text-purple-700",
+  GET: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+  POST: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  PUT: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  DELETE: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
+  PATCH: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
 };
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen bg-white">
-      <nav className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+    <div className="min-h-screen bg-background">
+      <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">L</span>
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
+                <Scale className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-xl text-slate-900">LegalMint AI</span>
+              <span className="font-bold text-xl text-foreground">
+                Legal<span className="text-primary">Ease</span> AI
+              </span>
             </Link>
-            <Link href="/" className="text-sm text-slate-600 hover:text-slate-900">
-              Back to Home
+            <Link href="/">
+              <Button variant="ghost" size="sm">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Home
+              </Button>
             </Link>
           </div>
         </div>
       </nav>
 
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h1 className="text-3xl font-bold text-slate-900 mb-2">API Documentation</h1>
-        <p className="text-slate-600 mb-8">tRPC-based API for LegalMint AI platform</p>
+        <div className="mb-8">
+          <Badge variant="default" className="mb-4">API</Badge>
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-2">API Documentation</h1>
+          <p className="text-muted-foreground">tRPC-based API for LegalMint AI platform</p>
+        </div>
 
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-8">
-          <p className="text-sm text-blue-800">
-            <strong>Base URL:</strong> <code className="bg-blue-100 px-1 rounded">/api/trpc</code>
-            <br />
-            <strong>Authentication:</strong> Session-based via Supabase Auth cookies
-            <br />
-            <strong>Content-Type:</strong> <code className="bg-blue-100 px-1 rounded">application/json</code>
-          </p>
+        <div className="grid sm:grid-cols-3 gap-4 mb-8">
+          <div className="bg-card border border-border/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Globe className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Base URL</span>
+            </div>
+            <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">/api/trpc</code>
+          </div>
+          <div className="bg-card border border-border/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Key className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Authentication</span>
+            </div>
+            <p className="text-xs text-muted-foreground">Supabase Auth cookies</p>
+          </div>
+          <div className="bg-card border border-border/50 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Lock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">Content-Type</span>
+            </div>
+            <code className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">application/json</code>
+          </div>
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-slate-900">Endpoints</h2>
+          <h2 className="text-xl font-semibold text-foreground">Endpoints</h2>
           {ENDPOINTS.map((endpoint, i) => (
-            <div key={i} className="border border-slate-200 rounded-xl p-4">
-              <div className="flex items-center gap-3 mb-2">
+            <div key={i} className="border border-border/50 rounded-xl p-5 bg-card">
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
                 <span className={`px-2 py-0.5 rounded text-xs font-bold ${METHOD_COLORS[endpoint.method]}`}>
                   {endpoint.method}
                 </span>
-                <code className="text-sm text-slate-900 font-mono">{endpoint.path}</code>
+                <code className="text-sm text-foreground font-mono">{endpoint.path}</code>
                 {endpoint.auth && (
-                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-700">
-                    Auth Required
-                  </span>
+                  <Badge variant="warning" className="text-[10px] px-1.5 py-0">Auth Required</Badge>
                 )}
               </div>
-              <p className="text-sm text-slate-600 mb-3">{endpoint.description}</p>
+              <p className="text-sm text-muted-foreground mb-3">{endpoint.description}</p>
               {endpoint.params && endpoint.params.length > 0 && (
-                <div className="mb-2">
-                  <p className="text-xs font-medium text-slate-500 mb-1">Query Parameters:</p>
-                  <ul className="text-sm text-slate-600 space-y-0.5">
+                <div className="mb-3">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Query Parameters:</p>
+                  <ul className="text-sm text-muted-foreground space-y-0.5">
                     {endpoint.params.map((param) => (
-                      <li key={param}><code className="bg-slate-100 px-1 rounded">{param}</code></li>
+                      <li key={param}><code className="bg-muted px-1 rounded text-xs">{param}</code></li>
                     ))}
                   </ul>
                 </div>
               )}
               {endpoint.body && (
                 <div>
-                  <p className="text-xs font-medium text-slate-500 mb-1">Request Body:</p>
-                  <pre className="bg-slate-50 p-3 rounded-lg text-xs overflow-x-auto">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Request Body:</p>
+                  <pre className="bg-muted/50 p-3 rounded-lg text-xs overflow-x-auto text-muted-foreground">
                     {JSON.stringify(endpoint.body, null, 2)}
                   </pre>
                 </div>
@@ -174,23 +197,23 @@ export default function ApiDocsPage() {
           ))}
         </div>
 
-        <div className="mt-12 border-t pt-8">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Webhooks</h2>
-          <div className="border border-slate-200 rounded-xl p-4">
-            <div className="flex items-center gap-3 mb-2">
-              <span className="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-700">POST</span>
-              <code className="text-sm text-slate-900 font-mono">/api/webhooks/cashfree</code>
+        <div className="mt-12 border-t border-border/50 pt-8">
+          <h2 className="text-xl font-semibold text-foreground mb-4">Webhooks</h2>
+          <div className="border border-border/50 rounded-xl p-5 bg-card">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="px-2 py-0.5 rounded text-xs font-bold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">POST</span>
+              <code className="text-sm text-foreground font-mono">/api/webhooks/cashfree</code>
             </div>
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Receives payment and subscription events from Cashfree. Validates HMAC-SHA256 signature.
             </p>
           </div>
         </div>
       </main>
 
-      <footer className="border-t py-8">
+      <footer className="border-t border-border/50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-sm text-slate-500 text-center">
+          <p className="text-sm text-muted-foreground text-center">
             © 2026 LegalMint AI. API v2.0
           </p>
         </div>

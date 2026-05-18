@@ -7,11 +7,12 @@ import { ComplianceCalendar } from "@/components/ComplianceCalendar";
 import { Skeleton } from "@/components/Skeleton";
 import { downloadComplianceReport, ComplianceReportData } from "@/lib/compliance-report";
 import { ComplianceHelpTooltip } from "@/components/Tooltip";
-import { ClipboardList, AlertTriangle, FileDown, ArrowRight } from "lucide-react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { ClipboardList, AlertTriangle, FileDown, ArrowRight, TrendingUp, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CompliancePage() {
   const supabase = createClient();
@@ -110,7 +111,7 @@ export default function CompliancePage() {
     return "text-red-600";
   };
 
-  const getScoreColorVariant = (score: number): "success" | "warning" | "destructive" => {
+  const getProgressColor = (score: number): "success" | "warning" | "destructive" => {
     if (score >= 80) return "success";
     if (score >= 50) return "warning";
     return "destructive";
@@ -131,14 +132,14 @@ export default function CompliancePage() {
     return colors[category] || colors.OTHER;
   };
 
-  const getStatusColor = (status: string) => {
-    const colors: Record<string, "success" | "destructive" | "warning" | "default"> = {
-      COMPLIANT: "success",
-      NON_COMPLIANT: "destructive",
-      IN_PROGRESS: "warning",
-      NOT_APPLICABLE: "default",
-    };
-    return colors[status] || "default";
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "COMPLIANT": return <Badge variant="success"><CheckCircle className="w-3 h-3 mr-1" />Compliant</Badge>;
+      case "NON_COMPLIANT": return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Non-Compliant</Badge>;
+      case "IN_PROGRESS": return <Badge variant="warning"><Clock className="w-3 h-3 mr-1" />In Progress</Badge>;
+      case "NOT_APPLICABLE": return <Badge variant="default">Not Applicable</Badge>;
+      default: return <Badge>{status}</Badge>;
+    }
   };
 
   const handleExportReport = () => {
@@ -227,7 +228,7 @@ export default function CompliancePage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Compliance</h1>
@@ -242,20 +243,23 @@ export default function CompliancePage() {
       <div className="grid lg:grid-cols-2 gap-6">
         <Card className="border-border/50">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold text-foreground">Compliance Score</h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {requirements.filter((r: any) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
-                </p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Compliance Score</h2>
+                  <p className="text-sm text-muted-foreground">
+                    {requirements.filter((r: any) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
+                  </p>
+                </div>
               </div>
               <div className={`text-5xl font-bold ${getScoreColor(complianceScore)}`}>
                 {complianceScore}%
               </div>
             </div>
-            <div className="mt-4">
-              <Progress value={complianceScore} color={getScoreColorVariant(complianceScore)} />
-            </div>
+            <Progress value={complianceScore} color={getProgressColor(complianceScore)} size="lg" />
           </CardContent>
         </Card>
 
@@ -276,7 +280,7 @@ export default function CompliancePage() {
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full transition-all duration-500 ${getScoreColorVariant(cat.score) === "success" ? "bg-emerald-500" : getScoreColorVariant(cat.score) === "warning" ? "bg-amber-500" : "bg-red-500"}`}
+                      className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(cat.score) === "success" ? "bg-emerald-500" : getProgressColor(cat.score) === "warning" ? "bg-amber-500" : "bg-red-500"}`}
                       style={{ width: `${cat.score}%` }}
                     />
                   </div>
@@ -303,7 +307,7 @@ export default function CompliancePage() {
               <div className="p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
                       <h3 className="font-medium text-foreground">{cr?.name}</h3>
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(cr?.category)}`}>
                         {cr?.category}
@@ -313,24 +317,28 @@ export default function CompliancePage() {
                         <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Mandatory</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2">{cr?.description}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{cr?.description}</p>
                     {cr?.penaltyDescription && (
-                      <p className="text-xs text-destructive mt-2 flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5" />
+                      <p className="text-xs text-destructive flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                         Penalty: {cr.penaltyDescription}
                       </p>
                     )}
                   </div>
-                  <select
+                  <Select
                     value={req.status}
-                    onChange={(e) => updateStatus(req.id, e.target.value as any)}
-                    className="px-3 py-1.5 rounded-lg text-sm font-medium border bg-background text-foreground cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
+                    onValueChange={(value) => updateStatus(req.id, value as any)}
                   >
-                    <option value="COMPLIANT">Compliant</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="NON_COMPLIANT">Non-Compliant</option>
-                    <option value="NOT_APPLICABLE">Not Applicable</option>
-                  </select>
+                    <SelectTrigger className="w-[160px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="COMPLIANT">Compliant</SelectItem>
+                      <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                      <SelectItem value="NON_COMPLIANT">Non-Compliant</SelectItem>
+                      <SelectItem value="NOT_APPLICABLE">Not Applicable</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             </Card>

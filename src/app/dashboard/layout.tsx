@@ -5,9 +5,10 @@ import { Toaster } from "sonner";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { CommandPalette } from "@/components/CommandPalette";
-import { BarChart3, FileText, File, CheckCircle, CreditCard, Settings, LayoutDashboard } from "lucide-react";
+import { LayoutDashboard, FileText, File, CheckCircle, CreditCard, Settings, Search } from "lucide-react";
 import { Avatar } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { Logo } from "@/components/Logo";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -40,15 +41,8 @@ export default async function DashboardLayout({
       <header className="bg-white dark:bg-slate-800 border-b border-border sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-8 h-8 gradient-primary rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                <span className="text-white font-bold text-sm">L</span>
-              </div>
-              <span className="font-bold text-xl text-foreground hidden sm:block">
-                Legal<span className="text-primary">Mint</span> AI
-              </span>
-            </Link>
-            <div className="flex items-center gap-4">
+            <Logo size="sm" />
+            <div className="flex items-center gap-3">
               <CommandPalette />
               <ThemeToggle />
               <div className="hidden sm:flex items-center gap-3">
@@ -81,7 +75,7 @@ export default async function DashboardLayout({
                   href={item.href}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-all"
                 >
-                  <item.icon className="w-4.5 h-4.5" />
+                  <item.icon className="w-4 h-4" />
                   {item.label}
                 </Link>
               ))}
@@ -95,14 +89,14 @@ export default async function DashboardLayout({
                   href={item.href}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-muted-foreground rounded-lg hover:bg-accent hover:text-accent-foreground transition-all"
                 >
-                  <item.icon className="w-4.5 h-4.5" />
+                  <item.icon className="w-4 h-4" />
                   {item.label}
                 </Link>
               ))}
             </nav>
           </aside>
 
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-border z-40 safe-area-bottom">
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-border z-40">
             <nav className="flex justify-around py-2">
               {navItems.slice(0, 5).map((item) => (
                 <Link

@@ -13,10 +13,10 @@ import { PageTransition } from "@/components/PageTransition";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: {
-    default: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
-    template: "%s | LegalMint AI",
-  },
+    title: {
+      default: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
+      template: "%s | LegalMint AI",
+    },
   description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations. DPDP Act 2023, IT Act, GST, and more.",
   keywords: ["legal compliance", "India", "DPDP Act", "legal documents", "AI", "business compliance", "GST", "IT Act", "privacy policy", "terms of service"],
   authors: [{ name: "LegalMint AI" }],
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://legalmint.ai",
+    url: "https://legalease.ai",
     siteName: "LegalMint AI",
     title: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
     description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations.",
@@ -70,7 +70,7 @@ export default function RootLayout({
     "@type": "SoftwareApplication",
     name: "LegalMint AI",
     description: "India's AI-powered legal compliance platform for automated document generation and regulatory tracking.",
-    url: "https://legalmint.ai",
+    url: "https://legalease.ai",
     applicationCategory: "Legal",
     operatingSystem: "Web",
     offers: {
