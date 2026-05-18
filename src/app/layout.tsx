@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
+import { PageTransition } from "@/components/PageTransition";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -93,7 +94,7 @@ export default function RootLayout({
         <ErrorBoundary>
           <ThemeProvider>
             <TRPCProvider>
-              {children}
+              <PageTransition>{children}</PageTransition>
               <LegalDisclaimer className="fixed bottom-0 left-0 right-0 z-40 rounded-none" />
               <Toaster position="top-right" />
               <Analytics />

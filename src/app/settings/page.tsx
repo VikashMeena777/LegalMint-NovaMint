@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { exportUserData, downloadUserData } from "@/lib/data-export";
+import { User, Download, Trash2, Info, Save, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -110,89 +115,116 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-8 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-        <p className="text-slate-600 mt-1">Manage your account and business profile</p>
+        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
+        <p className="text-muted-foreground mt-1">Manage your account and business profile</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Profile</h2>
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Name</label>
-            <input
-              type="text"
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <User className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Profile</h2>
+          </div>
+          <div className="space-y-5">
+            <Input
+              label="Name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+              placeholder="Your name"
             />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-            <input
-              type="email"
+            <Input
+              label="Email"
               value={email}
               disabled
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-500"
+              helperText="Email cannot be changed"
             />
-            <p className="text-xs text-slate-500 mt-1">Email cannot be changed</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Company Name</label>
-            <input
-              type="text"
+            <Input
+              label="Company Name"
               value={companyName}
               onChange={(e) => setCompanyName(e.target.value)}
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
               placeholder="Your Company Pvt Ltd"
             />
+            <Button onClick={handleSave} disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="w-4 h-4 mr-2" />
+                  Save Changes
+                </>
+              )}
+            </Button>
           </div>
-          <button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-blue-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50"
-          >
-            {loading ? "Saving..." : "Save Changes"}
-          </button>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Data & Privacy</h2>
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-medium text-slate-900">Export My Data</h3>
-            <p className="text-sm text-slate-600 mt-1">Download all your data in a machine-readable format (DPDP Act right).</p>
-            <button
-              onClick={handleExportData}
-              disabled={exporting}
-              className="mt-2 text-sm text-blue-600 hover:underline disabled:opacity-50"
-            >
-              {exporting ? "Preparing export..." : "Download My Data (JSON)"}
-            </button>
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Info className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Data & Privacy</h2>
           </div>
-          <div className="border-t pt-4">
-            <h3 className="font-medium text-red-600">Delete My Account</h3>
-            <p className="text-sm text-slate-600 mt-1">Permanently delete your account and all associated data.</p>
-            <button
-              onClick={handleDeleteAccount}
-              className="mt-2 text-sm text-red-600 hover:underline"
-            >
-              Delete Account
-            </button>
+          <div className="space-y-6">
+            <div>
+              <h3 className="font-medium text-foreground">Export My Data</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Download all your data in a machine-readable format (DPDP Act right to data portability).
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleExportData}
+                disabled={exporting}
+                className="mt-3"
+              >
+                {exporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Preparing export...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download My Data (JSON)
+                  </>
+                )}
+              </Button>
+            </div>
+            <Separator />
+            <div>
+              <h3 className="font-medium text-destructive">Delete My Account</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                Permanently delete your account and all associated data.
+              </p>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteAccount}
+                className="mt-3"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                Delete Account
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">About</h2>
-        <div className="space-y-2 text-sm text-slate-600">
-          <p><strong>LegalMint AI</strong> v2.0 (India Edition)</p>
-          <p>Built for Indian businesses. Compliant with DPDP Act 2023.</p>
-          <p className="text-slate-500">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
-        </div>
-      </div>
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">About</h2>
+          <div className="space-y-2 text-sm text-muted-foreground">
+            <p><strong className="text-foreground">LegalMint AI</strong> v2.0 (India Edition)</p>
+            <p>Built for Indian businesses. Compliant with DPDP Act 2023.</p>
+            <p className="text-muted-foreground/70">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

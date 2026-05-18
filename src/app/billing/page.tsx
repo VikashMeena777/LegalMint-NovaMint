@@ -3,6 +3,10 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { CheckCircle, CreditCard, Sparkles, ArrowUpRight, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const PLANS = [
   {
@@ -34,6 +38,8 @@ const PLANS = [
     features: ["Unlimited documents", "Custom integrations", "White-label options", "SLA guarantee", "Dedicated account manager"],
   },
 ];
+
+const paymentMethods = ["UPI", "Visa", "Mastercard", "Net Banking", "Wallets"];
 
 export default function BillingPage() {
   const supabase = createClient();
@@ -102,74 +108,104 @@ export default function BillingPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900">Billing</h1>
-        <p className="text-slate-600 mt-1">Manage your subscription and payment methods</p>
+        <h1 className="text-2xl font-bold text-foreground">Billing</h1>
+        <p className="text-muted-foreground mt-1">Manage your subscription and payment methods</p>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Current Plan</h2>
-        <div className="flex items-center gap-4">
-          <span className="text-3xl font-bold text-blue-600">{currentPlan}</span>
-          <span className="text-sm text-slate-500">
-            {currentPlan === "FREE" ? "Free tier — upgrade for more features" : "Active subscription"}
-          </span>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Available Plans</h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={`bg-white border rounded-xl p-6 ${
-                currentPlan === plan.id ? "border-blue-600 shadow-md" : "border-slate-200"
-              }`}
-            >
-              <h3 className="font-semibold text-slate-900">{plan.name}</h3>
-              <div className="flex items-baseline gap-1 mt-2 mb-4">
-                <span className="text-3xl font-bold text-slate-900">{plan.price}</span>
-                <span className="text-slate-500">{plan.period}</span>
+      <Card className="border-border/50 bg-gradient-to-r from-primary/5 to-secondary/5">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground mb-1">Current Plan</h2>
+              <div className="flex items-center gap-3">
+                <span className="text-3xl font-bold text-primary">{currentPlan}</span>
+                <Badge variant={currentPlan === "FREE" ? "default" : "success"}>
+                  {currentPlan === "FREE" ? "Free Tier" : "Active"}
+                </Badge>
               </div>
-              <ul className="space-y-2 mb-6">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-center gap-2 text-sm text-slate-600">
-                    <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleUpgrade(plan.id)}
-                disabled={loading || currentPlan === plan.id}
-                className={`w-full py-2 rounded-lg font-medium transition-colors ${
-                  currentPlan === plan.id
-                    ? "bg-slate-100 text-slate-500 cursor-not-allowed"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
-              >
-                {currentPlan === plan.id ? "Current Plan" : plan.id === "ENTERPRISE" ? "Contact Sales" : "Upgrade"}
-              </button>
             </div>
-          ))}
+            {currentPlan === "FREE" && (
+              <p className="text-sm text-muted-foreground">Free tier — upgrade for more features</p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Available Plans</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {PLANS.map((plan) => {
+            const isCurrent = currentPlan === plan.id;
+            const isEnterprise = plan.id === "ENTERPRISE";
+            return (
+              <Card
+                key={plan.id}
+                className={`relative border-border/50 ${isCurrent ? "border-primary ring-1 ring-primary shadow-md" : ""}`}
+              >
+                <CardContent className="p-6">
+                  <h3 className="font-semibold text-foreground">{plan.name}</h3>
+                  <div className="flex items-baseline gap-1 mt-2 mb-4">
+                    <span className="text-3xl font-bold text-foreground">{plan.price}</span>
+                    {plan.period && <span className="text-muted-foreground">{plan.period}</span>}
+                  </div>
+                  <ul className="space-y-2.5 mb-6">
+                    {plan.features.map((feature) => (
+                      <li key={feature} className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={loading || isCurrent}
+                    variant={isCurrent ? "outline" : isEnterprise ? "outline" : "default"}
+                    className="w-full"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Processing...
+                      </>
+                    ) : isCurrent ? (
+                      "Current Plan"
+                    ) : isEnterprise ? (
+                      <>
+                        Contact Sales
+                        <ArrowUpRight className="w-4 h-4 ml-1.5" />
+                      </>
+                    ) : (
+                      <>
+                        Upgrade
+                        <Sparkles className="w-4 h-4 ml-1.5" />
+                      </>
+                    )}
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <h2 className="text-lg font-semibold text-slate-900 mb-2">Payment Methods</h2>
-        <p className="text-sm text-slate-600 mb-4">We accept UPI, Credit/Debit Cards, Net Banking, and Wallets via Cashfree.</p>
-        <div className="flex items-center gap-4 text-sm text-slate-500">
-          <span className="px-3 py-1 bg-slate-100 rounded">UPI</span>
-          <span className="px-3 py-1 bg-slate-100 rounded">Visa</span>
-          <span className="px-3 py-1 bg-slate-100 rounded">Mastercard</span>
-          <span className="px-3 py-1 bg-slate-100 rounded">Net Banking</span>
-          <span className="px-3 py-1 bg-slate-100 rounded">Wallets</span>
-        </div>
-      </div>
+      <Card className="border-border/50">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <CreditCard className="w-5 h-5 text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">Payment Methods</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            We accept UPI, Credit/Debit Cards, Net Banking, and Wallets via Cashfree.
+          </p>
+          <div className="flex items-center gap-3 flex-wrap">
+            {paymentMethods.map((method) => (
+              <Badge key={method} variant="default">{method}</Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

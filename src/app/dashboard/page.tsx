@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/Skeleton";
+import { FileText, File, CheckCircle } from "lucide-react";
 
 export default function DashboardPage() {
   const { data: session, isLoading: sessionLoading } = trpc.auth.getSession.useQuery();
@@ -98,21 +99,21 @@ export default function DashboardPage() {
             title="Start Onboarding"
             description="Tell us about your business to generate a personalized compliance roadmap."
             href="/onboarding"
-            icon="📝"
+            icon={<FileText className="w-6 h-6 text-blue-600" />}
             color="blue"
           />
           <QuickActionCard
             title="Generate Document"
             description="Create a Privacy Policy, Terms of Service, or other legal document."
             href="/documents"
-            icon="📄"
+            icon={<File className="w-6 h-6 text-emerald-600" />}
             color="green"
           />
           <QuickActionCard
             title="View Compliance"
             description="Check your compliance status across Indian regulations."
             href="/compliance"
-            icon="✅"
+            icon={<CheckCircle className="w-6 h-6 text-amber-600" />}
             color="amber"
           />
         </div>
@@ -174,7 +175,7 @@ function StatCard({ label, value, subtext, color }: { label: string; value: stri
   );
 }
 
-function QuickActionCard({ title, description, href, icon, color }: { title: string; description: string; href: string; icon: string; color: string }) {
+function QuickActionCard({ title, description, href, icon, color }: { title: string; description: string; href: string; icon: React.ReactNode; color: string }) {
   const borderColors: Record<string, string> = {
     blue: "hover:border-blue-300",
     green: "hover:border-green-300",
@@ -186,7 +187,7 @@ function QuickActionCard({ title, description, href, icon, color }: { title: str
       href={href}
       className={`block p-5 bg-white border border-slate-200 rounded-xl hover:shadow-md transition-all ${borderColors[color] || ""}`}
     >
-      <div className="text-2xl mb-2">{icon}</div>
+      <div className="mb-3">{icon}</div>
       <h3 className="font-semibold text-slate-900">{title}</h3>
       <p className="text-sm text-slate-600 mt-1">{description}</p>
     </Link>

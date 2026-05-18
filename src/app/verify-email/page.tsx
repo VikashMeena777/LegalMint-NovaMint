@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { CheckCircle, Hourglass } from "lucide-react";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -44,7 +45,7 @@ export default function VerifyEmailPage() {
 
         {status === "success" && (
           <div>
-            <div className="text-6xl mb-4">✅</div>
+            <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Email Verified!</h1>
             <p className="text-slate-600 mb-6">Your account is ready. Redirecting to dashboard...</p>
             <Link href="/dashboard" className="text-blue-600 hover:underline font-medium">
@@ -55,7 +56,7 @@ export default function VerifyEmailPage() {
 
         {status === "error" && (
           <div>
-            <div className="text-6xl mb-4">⏳</div>
+            <Hourglass className="w-16 h-16 text-amber-500 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-slate-900 mb-2">Email Not Verified</h1>
             <p className="text-slate-600 mb-6">
               Please check your inbox and click the verification link.

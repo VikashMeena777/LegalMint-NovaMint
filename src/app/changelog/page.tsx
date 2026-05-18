@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Sparkles, Wrench, Bug, Lock } from "lucide-react";
 
 interface ChangelogEntry {
   version: string;
@@ -32,11 +33,11 @@ const CHANGELOG: ChangelogEntry[] = [
   },
 ];
 
-const TYPE_STYLES: Record<string, { badge: string; icon: string }> = {
-  feature: { badge: "bg-green-100 text-green-700", icon: "✨" },
-  improvement: { badge: "bg-blue-100 text-blue-700", icon: "🔧" },
-  fix: { badge: "bg-amber-100 text-amber-700", icon: "🐛" },
-  security: { badge: "bg-red-100 text-red-700", icon: "🔒" },
+const TYPE_STYLES: Record<string, { badge: string; icon: React.ElementType }> = {
+  feature: { badge: "bg-green-100 text-green-700", icon: Sparkles },
+  improvement: { badge: "bg-blue-100 text-blue-700", icon: Wrench },
+  fix: { badge: "bg-amber-100 text-amber-700", icon: Bug },
+  security: { badge: "bg-red-100 text-red-700", icon: Lock },
 };
 
 export default function ChangelogPage() {
@@ -68,7 +69,7 @@ export default function ChangelogPage() {
             return (
               <div key={entry.version} className="border-l-2 border-slate-200 pl-6 pb-8 last:pb-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <span className="text-lg">{style.icon}</span>
+                  <style.icon className="w-5 h-5" />
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${style.badge}`}>
                     {entry.type}
                   </span>
