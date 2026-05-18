@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Scale, Send, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Logo } from "@/components/Logo";
+import type { Database } from "@/types/database";
 
 interface Message {
   role: "ai" | "user";
@@ -32,7 +33,19 @@ interface BusinessProfile {
   annualRevenue: string;
 }
 
-const QUESTIONS = [
+type QuestionType = "text" | "select" | "multiselect" | "boolean";
+type AnswerValue = string | string[] | boolean;
+type BusinessType = Database["public"]["Enums"]["BusinessType"];
+type BusinessEntity = Database["public"]["Enums"]["BusinessEntity"];
+
+interface Question {
+  key: keyof BusinessProfile;
+  prompt: string;
+  type: QuestionType;
+  options?: string[];
+}
+
+const QUESTIONS: Question[] = [
   {
     key: "businessName",
     prompt: "What is the name of your business?",
@@ -58,7 +71,7 @@ const QUESTIONS = [
   },
   {
     key: "operatingStates",
-    prompt: "In which states do you operate or have customers? (Select all that apply)",
+    prompt: "In which states do you operate or have customers?",
     type: "multiselect",
     options: ["Karnataka", "Maharashtra", "Delhi", "Tamil Nadu", "Gujarat", "Rajasthan", "Telangana", "Uttar Pradesh", "West Bengal", "All India"],
   },
@@ -72,22 +85,22 @@ const QUESTIONS = [
     key: "annualRevenue",
     prompt: "What is your approximate annual turnover?",
     type: "select",
-    options: ["Below ₹20 Lakh", "₹20 Lakh - ₹5 Crore", "₹5 Crore - ₹50 Crore", "Above ₹50 Crore"],
+    options: ["Below Rs. 20 Lakh", "Rs. 20 Lakh - Rs. 5 Crore", "Rs. 5 Crore - Rs. 50 Crore", "Above Rs. 50 Crore"],
   },
   {
     key: "collectsPersonalData",
-    prompt: "Do you collect personal data from users (name, email, phone, etc.)?",
+    prompt: "Do you collect personal data from users, such as name, email, or phone number?",
     type: "boolean",
   },
   {
     key: "dataTypes",
-    prompt: "What types of personal data do you collect? (Select all that apply)",
+    prompt: "What types of personal data do you collect?",
     type: "multiselect",
     options: ["Email", "Name", "Phone Number", "Address", "Payment Info", "Aadhaar", "PAN", "Location Data", "Health Data", "Browsing Behavior"],
   },
   {
     key: "usesCookies",
-    prompt: "Do you use cookies or tracking technologies on your website/app?",
+    prompt: "Do you use cookies or tracking technologies on your website or app?",
     type: "boolean",
   },
   {
@@ -97,14 +110,35 @@ const QUESTIONS = [
   },
   {
     key: "hasPaymentProcessing",
-    prompt: "Do you process payments (UPI, cards, net banking)?",
+    prompt: "Do you process payments through UPI, cards, or net banking?",
     type: "boolean",
   },
 ];
 
+function formatAnswer(answer: AnswerValue) {
+  if (Array.isArray(answer)) return answer.join(", ");
+  if (typeof answer === "boolean") return answer ? "Yes" : "No";
+  return answer;
+}
+
+function parseEmployeeCount(value?: string) {
+  if (!value) return 0;
+  if (value.startsWith("100")) return 100;
+  const parsed = Number.parseInt(value.split("-")[0], 10);
+  return Number.isNaN(parsed) ? 0 : parsed;
+}
+
+function parseAnnualRevenue(value?: string) {
+  if (!value) return null;
+  if (value.includes("20 Lakh")) return 2000000;
+  if (value.includes("5 Crore")) return 50000000;
+  if (value.includes("50 Crore")) return 500000000;
+  return null;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [currentStep, setCurrentStep] = useState(0);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState("");
@@ -112,35 +146,42 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState<Partial<BusinessProfile>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initializedRef = useRef(false);
+
+  const addAiMessage = useCallback((content: string) => {
+    setMessages((prev) => [...prev, { role: "ai", content }]);
+  }, []);
+
+  const addUserMessage = useCallback((content: string) => {
+    setMessages((prev) => [...prev, { role: "user", content }]);
+  }, []);
 
   useEffect(() => {
-    if (messages.length === 0) {
-      const saved = localStorage.getItem("onboarding_progress");
-      if (saved) {
-        try {
-          const { step, profile: savedProfile, messages: savedMessages } = JSON.parse(saved);
-          if (savedMessages?.length > 0) setMessages(savedMessages);
-          if (savedProfile) setProfile(savedProfile);
-          if (step > 0) {
-            setCurrentStep(step);
-            const nextQuestion = QUESTIONS[step];
-            if (nextQuestion) {
-              setTimeout(() => {
-                addAiMessage(nextQuestion.prompt + (nextQuestion.options ? `\n\nOptions: ${nextQuestion.options.join(" | ")}` : ""));
-              }, 500);
-            }
-          } else {
-            addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
-          }
-        } catch {
-          localStorage.removeItem("onboarding_progress");
-          addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    const saved = localStorage.getItem("onboarding_progress");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as {
+          step?: number;
+          profile?: Partial<BusinessProfile>;
+          messages?: Message[];
+        };
+
+        if (parsed.messages?.length) setMessages(parsed.messages);
+        if (parsed.profile) setProfile(parsed.profile);
+        if (typeof parsed.step === "number" && parsed.step >= 0 && parsed.step < QUESTIONS.length) {
+          setCurrentStep(parsed.step);
         }
-      } else {
-        addAiMessage("Namaste! I'm your LegalMint AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+        if (parsed.messages?.length) return;
+      } catch {
+        localStorage.removeItem("onboarding_progress");
       }
     }
-  }, []);
+
+    addAiMessage("Namaste. I will build your Indian compliance profile and identify the documents and requirements that apply. Let us start with your business name.");
+  }, [addAiMessage]);
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -156,82 +197,50 @@ export default function OnboardingPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const addAiMessage = (content: string) => {
-    setMessages((prev) => [...prev, { role: "ai", content }]);
-  };
-
-  const addUserMessage = (content: string) => {
-    setMessages((prev) => [...prev, { role: "user", content }]);
-  };
-
-  const handleNext = async () => {
-    const question = QUESTIONS[currentStep];
-    if (!question) return;
-
-    let answer: string | string[] | boolean = "";
-
-    if (question.type === "text") {
-      answer = inputValue.trim();
-      if (!answer) return;
-    } else if (question.type === "select") {
-      answer = inputValue.trim();
-      if (!answer) return;
-    } else if (question.type === "multiselect") {
-      answer = selectedOptions;
-      if (answer.length === 0) return;
-    } else if (question.type === "boolean") {
-      answer = inputValue.toLowerCase() === "yes" || inputValue.toLowerCase() === "true";
-    }
-
-    addUserMessage(Array.isArray(answer) ? answer.join(", ") : String(answer));
-    setProfile((prev) => ({ ...prev, [question.key]: answer }));
-    setInputValue("");
-    setSelectedOptions([]);
-
-    const nextStep = currentStep + 1;
-    if (nextStep < QUESTIONS.length) {
-      setCurrentStep(nextStep);
-      const nextQuestion = QUESTIONS[nextStep];
-      setTimeout(() => {
-        addAiMessage(nextQuestion.prompt + (nextQuestion.options ? `\n\nOptions: ${nextQuestion.options.join(" | ")}` : ""));
-      }, 500);
-    } else {
-      setLoading(true);
-      addAiMessage("Thank you! I'm now generating your personalized compliance roadmap based on your business profile...");
-      await completeOnboarding(profile as BusinessProfile);
-    }
-  };
-
-  const completeOnboarding = async (finalProfile: BusinessProfile) => {
+  const completeOnboarding = useCallback(async (finalProfile: BusinessProfile) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Please sign in to complete onboarding");
         router.push("/login");
-        return;
+        setLoading(false);
+        return false;
       }
 
-      const businessTypeMap: Record<string, string> = {
-        "SaaS": "SAAS", "E-commerce": "ECOMMERCE", "Marketplace": "MARKETPLACE",
-        "EdTech": "EDTECH", "Fintech": "FINTECH", "Healthcare": "HEALTHCARE",
-        "Agency/Services": "AGENCY", "Retail": "RETAIL", "Manufacturing": "MANUFACTURING",
-        "Content/Media": "CONTENT", "Other": "OTHER",
+      const businessTypeMap: Record<string, BusinessType> = {
+        "SaaS": "SAAS",
+        "E-commerce": "ECOMMERCE",
+        "Marketplace": "MARKETPLACE",
+        "EdTech": "EDTECH",
+        "Fintech": "FINTECH",
+        "Healthcare": "HEALTHCARE",
+        "Agency/Services": "AGENCY",
+        "Retail": "RETAIL",
+        "Manufacturing": "MANUFACTURING",
+        "Content/Media": "CONTENT",
+        "Other": "OTHER",
       };
 
-      const entityMap: Record<string, string> = {
-        "Proprietorship": "PROPRIETORSHIP", "Partnership": "PARTNERSHIP", "LLP": "LLP",
-        "Private Limited": "PRIVATE_LIMITED", "OPC (One Person Company)": "OPC",
-        "Public Limited": "PUBLIC_LIMITED", "Section 8 Company": "SECTION_8", "HUF": "HUF",
+      const entityMap: Record<string, BusinessEntity> = {
+        "Proprietorship": "PROPRIETORSHIP",
+        "Partnership": "PARTNERSHIP",
+        "LLP": "LLP",
+        "Private Limited": "PRIVATE_LIMITED",
+        "OPC (One Person Company)": "OPC",
+        "Public Limited": "PUBLIC_LIMITED",
+        "Section 8 Company": "SECTION_8",
+        "HUF": "HUF",
       };
 
       const { error } = await supabase.from("BusinessProfile").insert({
         userId: user.id,
         companyName: finalProfile.businessName,
-        businessType: (businessTypeMap[finalProfile.businessType] || "OTHER") as any,
-        businessEntity: (entityMap[finalProfile.businessEntity] || "PROPRIETORSHIP") as any,
+        businessType: businessTypeMap[finalProfile.businessType] || "OTHER",
+        businessEntity: entityMap[finalProfile.businessEntity] || "PROPRIETORSHIP",
         incorporatedState: finalProfile.registrationState,
         operatingStates: finalProfile.operatingStates || [],
-        employeeCount: parseInt(finalProfile.employeeCount?.split("-")[0] || "0") || 0,
+        employeeCount: parseEmployeeCount(finalProfile.employeeCount),
+        annualRevenue: parseAnnualRevenue(finalProfile.annualRevenue),
         collectsPersonalData: finalProfile.collectsPersonalData || false,
         dataTypesCollected: finalProfile.dataTypes || [],
         usesCookies: finalProfile.usesCookies || false,
@@ -245,54 +254,91 @@ export default function OnboardingPage() {
       if (error) {
         toast.error("Failed to save profile: " + error.message);
         setLoading(false);
-        return;
+        return false;
       }
 
-      addAiMessage("Your compliance roadmap is ready! Based on your business profile, I've identified the key regulations that apply to you and the documents you need.\n\nClick 'Go to Dashboard' to view your compliance roadmap and start generating documents.");
-      setLoading(false);
+      addAiMessage("Your compliance roadmap is ready. Go to the dashboard to review your obligations and generate the documents you need first.");
       localStorage.removeItem("onboarding_progress");
+      setLoading(false);
+      return true;
     } catch {
       toast.error("Something went wrong. Please try again.");
       setLoading(false);
+      return false;
+    }
+  }, [addAiMessage, router, supabase]);
+
+  const handleNext = async (explicitAnswer?: AnswerValue) => {
+    const question = QUESTIONS[currentStep];
+    if (!question || loading) return;
+
+    let answer: AnswerValue | null = explicitAnswer ?? null;
+
+    if (answer === null) {
+      if (question.type === "text") {
+        answer = inputValue.trim();
+      } else if (question.type === "multiselect") {
+        answer = selectedOptions;
+      } else if (question.type === "select") {
+        answer = inputValue.trim();
+      }
+    }
+
+    if (answer === null) return;
+    if (typeof answer === "string" && !answer.trim()) return;
+    if (Array.isArray(answer) && answer.length === 0) return;
+
+    const nextProfile = { ...profile, [question.key]: answer };
+
+    addUserMessage(formatAnswer(answer));
+    setProfile(nextProfile);
+    setInputValue("");
+    setSelectedOptions([]);
+
+    const nextStep = currentStep + 1;
+    if (nextStep < QUESTIONS.length) {
+      setCurrentStep(nextStep);
+      window.setTimeout(() => {
+        addAiMessage(QUESTIONS[nextStep].prompt);
+      }, 250);
+      return;
+    }
+
+    setLoading(true);
+    addAiMessage("Thank you. I am generating your personalized compliance roadmap from these answers.");
+    const saved = await completeOnboarding(nextProfile as BusinessProfile);
+    if (saved) {
+      setCurrentStep(nextStep);
     }
   };
 
   const currentQuestion = QUESTIONS[currentStep];
-  const progress = ((currentStep) / QUESTIONS.length) * 100;
+  const progress = Math.round((currentStep / QUESTIONS.length) * 100);
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-4">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-            <Scale className="w-5 h-5 text-white" />
-          </div>
-          <span className="font-bold text-xl text-foreground hidden sm:block">
-            Legal<span className="text-primary">Mint</span> AI
-          </span>
-        </Link>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="flex items-center justify-between gap-4">
+        <Logo size="sm" />
+        <Badge variant="default">{Math.min(currentStep + 1, QUESTIONS.length)} / {QUESTIONS.length}</Badge>
       </div>
 
-      {/* Progress */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <h1 className="text-lg font-semibold text-foreground">Business Onboarding</h1>
-          <Badge variant="default">{currentStep + 1} / {QUESTIONS.length}</Badge>
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold text-foreground">Business Onboarding</h1>
+          <span className="text-sm text-muted-foreground">{progress}% complete</span>
         </div>
         <Progress value={progress} color="default" size="sm" />
       </div>
 
-      {/* Chat Messages */}
-      <Card className="border-border/50">
-        <CardContent className="p-4 min-h-[400px] max-h-[500px] overflow-y-auto space-y-4">
+      <Card className="border-border">
+        <CardContent className="max-h-[52vh] min-h-[360px] space-y-4 overflow-y-auto p-4">
           {messages.map((msg, i) => (
             <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[85%] px-4 py-3 rounded-xl text-sm whitespace-pre-wrap leading-relaxed ${
+                className={`max-w-[88%] rounded-lg px-4 py-3 text-sm leading-6 ${
                   msg.role === "user"
-                    ? "gradient-primary text-white rounded-br-md"
-                    : "bg-muted text-muted-foreground rounded-bl-md"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-foreground"
                 }`}
               >
                 {msg.content}
@@ -301,8 +347,8 @@ export default function OnboardingPage() {
           ))}
           {loading && (
             <div className="flex justify-start">
-              <div className="bg-muted text-muted-foreground px-4 py-3 rounded-xl rounded-bl-md flex items-center gap-2">
-                <Loader2 className="w-4 h-4 animate-spin" />
+              <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
                 Processing...
               </div>
             </div>
@@ -311,81 +357,106 @@ export default function OnboardingPage() {
         </CardContent>
       </Card>
 
-      {/* Input Area */}
-      {currentStep < QUESTIONS.length && (
-        <Card className="border-border/50">
-          <CardContent className="p-4">
-            {currentQuestion?.type === "multiselect" ? (
+      {currentStep < QUESTIONS.length && currentQuestion && (
+        <Card className="border-border">
+          <CardContent className="space-y-4 p-4">
+            <p className="text-sm font-medium text-foreground">{currentQuestion.prompt}</p>
+
+            {currentQuestion.type === "multiselect" && (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {currentQuestion.options?.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => {
-                        setSelectedOptions((prev) =>
-                          prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
-                        );
-                      }}
-                      className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
-                        selectedOptions.includes(opt)
-                          ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                          : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                      }`}
-                    >
-                      {selectedOptions.includes(opt) && <CheckCircle2 className="w-3.5 h-3.5 inline mr-1" />}
-                      {opt}
-                    </button>
-                  ))}
+                  {currentQuestion.options?.map((opt) => {
+                    const selected = selectedOptions.includes(opt);
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => {
+                          setSelectedOptions((prev) =>
+                            prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
+                          );
+                        }}
+                        className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border bg-background text-muted-foreground hover:border-primary/50"
+                        }`}
+                      >
+                        {selected && <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />}
+                        {opt}
+                      </button>
+                    );
+                  })}
                 </div>
                 <Button
-                  onClick={handleNext}
-                  disabled={selectedOptions.length === 0}
+                  onClick={() => void handleNext()}
+                  disabled={selectedOptions.length === 0 || loading}
                   className="w-full"
                 >
                   Continue
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                  <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               </div>
-            ) : currentQuestion?.type === "boolean" ? (
-              <div className="flex gap-3">
+            )}
+
+            {currentQuestion.type === "select" && (
+              <div className="grid gap-2 sm:grid-cols-2">
+                {currentQuestion.options?.map((opt) => (
+                  <Button
+                    key={opt}
+                    type="button"
+                    variant="outline"
+                    className="justify-start whitespace-normal text-left"
+                    onClick={() => void handleNext(opt)}
+                    disabled={loading}
+                  >
+                    {opt}
+                  </Button>
+                ))}
+              </div>
+            )}
+
+            {currentQuestion.type === "boolean" && (
+              <div className="grid grid-cols-2 gap-3">
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 text-base"
-                  onClick={() => {
-                    setInputValue("yes");
-                    setTimeout(handleNext, 100);
-                  }}
+                  className="py-6 text-base"
+                  onClick={() => void handleNext(true)}
+                  disabled={loading}
                 >
-                  <CheckCircle2 className="w-5 h-5 mr-2 text-emerald-500" />
+                  <CheckCircle2 className="mr-2 h-5 w-5 text-emerald-500" />
                   Yes
                 </Button>
                 <Button
                   variant="outline"
-                  className="flex-1 py-6 text-base"
-                  onClick={() => {
-                    setInputValue("no");
-                    setTimeout(handleNext, 100);
-                  }}
+                  className="py-6 text-base"
+                  onClick={() => void handleNext(false)}
+                  disabled={loading}
                 >
                   No
                 </Button>
               </div>
-            ) : (
+            )}
+
+            {currentQuestion.type === "text" && (
               <div className="flex gap-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleNext()}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") void handleNext();
+                  }}
                   placeholder="Type your answer..."
                   autoFocus
                   className="flex-1"
                 />
                 <Button
-                  onClick={handleNext}
+                  onClick={() => void handleNext()}
                   disabled={!inputValue.trim() || loading}
                   size="icon"
+                  aria-label="Send answer"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -393,7 +464,6 @@ export default function OnboardingPage() {
         </Card>
       )}
 
-      {/* Complete */}
       {currentStep >= QUESTIONS.length && (
         <div className="text-center">
           <Button
@@ -401,7 +471,7 @@ export default function OnboardingPage() {
             size="lg"
           >
             Go to Dashboard
-            <ArrowRight className="w-5 h-5 ml-2" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       )}

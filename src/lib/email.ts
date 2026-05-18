@@ -6,6 +6,15 @@ const resend = process.env.RESEND_API_KEY
 
 const FROM_EMAIL = "LegalMint AI <noreply@legalmint.ai>";
 
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export async function sendWelcomeEmail(to: string, name: string) {
   if (!resend) {
     console.log("Resend not configured, skipping welcome email");
@@ -15,17 +24,17 @@ export async function sendWelcomeEmail(to: string, name: string) {
   return resend.emails.send({
     from: FROM_EMAIL,
     to,
-    subject: "Welcome to LegalMint AI — Your compliance journey starts here",
+    subject: "Welcome to LegalMint AI - Your compliance journey starts here",
     html: `
-      <h1>Welcome to LegalMint AI, ${name}!</h1>
+      <h1>Welcome to LegalMint AI, ${escapeHtml(name)}!</h1>
       <p>Thank you for joining India's AI-powered legal compliance platform.</p>
       <h2>Getting Started</h2>
       <ol>
-        <li><strong>Complete onboarding</strong> — Tell us about your business to get a personalized compliance roadmap.</li>
-        <li><strong>Generate documents</strong> — Create Privacy Policies, Terms of Service, and more in minutes.</li>
-        <li><strong>Track compliance</strong> — Stay on top of DPDP Act, IT Act, GST, and other Indian regulations.</li>
+        <li><strong>Complete onboarding</strong> - Tell us about your business to get a personalized compliance roadmap.</li>
+        <li><strong>Generate documents</strong> - Create Privacy Policies, Terms of Service, and more in minutes.</li>
+        <li><strong>Track compliance</strong> - Stay on top of DPDP Act, IT Act, GST, and other Indian regulations.</li>
       </ol>
-      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/onboarding">Start Onboarding →</a></p>
+      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/onboarding">Start Onboarding</a></p>
       <hr>
       <p style="font-size: 12px; color: #666;">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
     `,
@@ -48,9 +57,9 @@ export async function sendComplianceAlertEmail(
     subject: `Compliance Alert: ${title}`,
     html: `
       <h2>Compliance Alert</h2>
-      <p><strong>${title}</strong></p>
-      <p>${description}</p>
-      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/compliance">View Compliance Dashboard →</a></p>
+      <p><strong>${escapeHtml(title)}</strong></p>
+      <p>${escapeHtml(description)}</p>
+      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/compliance">View Compliance Dashboard</a></p>
       <hr>
       <p style="font-size: 12px; color: #666;">You're receiving this because you have compliance alerts enabled on LegalMint AI.</p>
     `,
@@ -70,7 +79,7 @@ export async function sendPasswordResetEmail(to: string, resetUrl: string) {
     html: `
       <h2>Password Reset Request</h2>
       <p>Click the link below to reset your password:</p>
-      <p><a href="${resetUrl}">Reset Password →</a></p>
+      <p><a href="${escapeHtml(resetUrl)}">Reset Password</a></p>
       <p>This link expires in 1 hour.</p>
       <hr>
       <p style="font-size: 12px; color: #666;">If you didn't request this, you can safely ignore this email.</p>
@@ -93,8 +102,8 @@ export async function sendDocumentReadyEmail(
     subject: `Your document "${documentTitle}" is ready`,
     html: `
       <h2>Document Generated</h2>
-      <p>Your document <strong>${documentTitle}</strong> has been generated successfully.</p>
-      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/documents">View Documents →</a></p>
+      <p>Your document <strong>${escapeHtml(documentTitle)}</strong> has been generated successfully.</p>
+      <p><a href="${process.env.NEXT_PUBLIC_APP_URL}/documents">View Documents</a></p>
       <hr>
       <p style="font-size: 12px; color: #666;">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
     `,

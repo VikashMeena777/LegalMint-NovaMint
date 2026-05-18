@@ -52,7 +52,7 @@ export function ComplianceCalendar() {
         <select
           value={selectedMonth}
           onChange={(e) => setSelectedMonth(Number(e.target.value))}
-          className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+          className="rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
         >
           {MONTH_NAMES.map((name, i) => (
             <option key={i} value={i}>{name}</option>
@@ -66,9 +66,9 @@ export function ComplianceCalendar() {
               className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${
                 selectedCategory === cat
                   ? cat === "all"
-                    ? "bg-slate-800 text-white border-slate-800"
+                  ? "bg-primary text-primary-foreground border-primary"
                     : CATEGORY_COLORS[cat]
-                  : "bg-white text-slate-600 border-slate-300 hover:border-slate-400"
+                  : "bg-background text-muted-foreground border-border hover:border-primary/50"
               }`}
             >
               {cat === "all" ? "All" : cat}
@@ -78,27 +78,27 @@ export function ComplianceCalendar() {
       </div>
 
       {deadlines.length === 0 ? (
-        <div className="text-center py-8 text-slate-500">
+        <div className="py-8 text-center text-muted-foreground">
           No filing deadlines for this month and category.
         </div>
       ) : (
         <div className="space-y-2">
           {deadlines.map((d, i) => (
-            <div key={i} className="flex items-center gap-4 p-3 bg-white border border-slate-200 rounded-lg">
-              <div className="w-12 h-12 bg-slate-100 rounded-lg flex flex-col items-center justify-center flex-shrink-0">
-                <span className="text-lg font-bold text-slate-900">{d.dayOfMonth}</span>
-                <span className="text-xs text-slate-500">{MONTH_NAMES[selectedMonth].slice(0, 3)}</span>
+            <div key={i} className="flex items-center gap-4 rounded-lg border border-border bg-background p-3">
+              <div className="flex h-12 w-12 flex-shrink-0 flex-col items-center justify-center rounded-lg bg-muted">
+                <span className="text-lg font-bold text-foreground">{d.dayOfMonth}</span>
+                <span className="text-xs text-muted-foreground">{MONTH_NAMES[selectedMonth].slice(0, 3)}</span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <h4 className="font-medium text-slate-900">{d.name}</h4>
+                  <h4 className="font-medium text-foreground">{d.name}</h4>
                   <span className={`px-2 py-0.5 rounded text-xs font-medium border ${CATEGORY_COLORS[d.category]}`}>
                     {d.category}
                   </span>
                 </div>
-                <p className="text-sm text-slate-600 truncate">{d.description}</p>
+                <p className="truncate text-sm text-muted-foreground">{d.description}</p>
               </div>
-              <span className="text-xs text-slate-500 capitalize">{d.frequency}</span>
+              <span className="text-xs capitalize text-muted-foreground">{d.frequency}</span>
             </div>
           ))}
         </div>

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { ComplianceCalendar } from "@/components/ComplianceCalendar";
@@ -13,21 +14,39 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PageHeader } from "@/components/PageHeader";
+
+type ComplianceStatus = "COMPLIANT" | "NON_COMPLIANT" | "IN_PROGRESS" | "NOT_APPLICABLE";
+
+interface ComplianceRequirement {
+  id: string;
+  name: string;
+  category: string;
+  description: string | null;
+  isMandatory: boolean;
+  penaltyDescription: string | null;
+}
+
+interface ComplianceMapping {
+  id: string;
+  status: ComplianceStatus;
+  lastReviewedAt: string | null;
+  ComplianceRequirement?: ComplianceRequirement | null;
+}
 
 export default function CompliancePage() {
-  const supabase = createClient();
-  const [requirements, setRequirements] = useState<any[]>([]);
+  const supabase = useMemo(() => createClient(), []);
+  const [requirements, setRequirements] = useState<ComplianceMapping[]>([]);
   const [loading, setLoading] = useState(true);
   const [complianceScore, setComplianceScore] = useState(0);
 
-  useEffect(() => {
-    loadComplianceData();
-  }, []);
-
-  const loadComplianceData = async () => {
+  const loadComplianceData = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setLoading(false);
+        return;
+      }
 
       const { data: profile } = await supabase
         .from("BusinessProfile")
@@ -56,11 +75,12 @@ export default function CompliancePage() {
         .eq("businessProfileId", profile.id);
 
       if (mappings) {
-        setRequirements(mappings);
+        const typedMappings = mappings as ComplianceMapping[];
+        setRequirements(typedMappings);
 
-        const total = mappings.length;
-        const compliant = mappings.filter((m: any) => m.status === "COMPLIANT").length;
-        const inProgress = mappings.filter((m: any) => m.status === "IN_PROGRESS").length;
+        const total = typedMappings.length;
+        const compliant = typedMappings.filter((m) => m.status === "COMPLIANT").length;
+        const inProgress = typedMappings.filter((m) => m.status === "IN_PROGRESS").length;
         const score = total > 0 ? Math.round(((compliant + inProgress * 0.5) / total) * 100) : 0;
         setComplianceScore(score);
       }
@@ -68,9 +88,13 @@ export default function CompliancePage() {
       toast.error("Failed to load compliance data");
     }
     setLoading(false);
-  };
+  }, [supabase]);
 
-  const updateStatus = async (mappingId: string, status: "COMPLIANT" | "NON_COMPLIANT" | "IN_PROGRESS" | "NOT_APPLICABLE") => {
+  useEffect(() => {
+    void loadComplianceData();
+  }, [loadComplianceData]);
+
+  const updateStatus = async (mappingId: string, status: ComplianceStatus) => {
     try {
       const { error } = await supabase
         .from("ComplianceMapping")
@@ -83,7 +107,7 @@ export default function CompliancePage() {
       }
 
       toast.success("Status updated");
-      loadComplianceData();
+      void loadComplianceData();
     } catch {
       toast.error("Something went wrong");
     }
@@ -91,7 +115,7 @@ export default function CompliancePage() {
 
   const categoryBreakdown = useMemo(() => {
     const categories: Record<string, { total: number; compliant: number; inProgress: number }> = {};
-    requirements.forEach((req: any) => {
+    requirements.forEach((req) => {
       const cat = req.ComplianceRequirement?.category || "OTHER";
       if (!categories[cat]) categories[cat] = { total: 0, compliant: 0, inProgress: 0 };
       categories[cat].total++;
@@ -148,12 +172,12 @@ export default function CompliancePage() {
       generatedAt: new Date().toISOString(),
       overallScore: complianceScore,
       totalRequirements: requirements.length,
-      compliantCount: requirements.filter((r: any) => r.status === "COMPLIANT").length,
-      nonCompliantCount: requirements.filter((r: any) => r.status === "NON_COMPLIANT").length,
-      inProgressCount: requirements.filter((r: any) => r.status === "IN_PROGRESS").length,
-      notApplicableCount: requirements.filter((r: any) => r.status === "NOT_APPLICABLE").length,
+      compliantCount: requirements.filter((r) => r.status === "COMPLIANT").length,
+      nonCompliantCount: requirements.filter((r) => r.status === "NON_COMPLIANT").length,
+      inProgressCount: requirements.filter((r) => r.status === "IN_PROGRESS").length,
+      notApplicableCount: requirements.filter((r) => r.status === "NOT_APPLICABLE").length,
       categories: categoryBreakdown,
-      requirements: requirements.map((r: any) => ({
+      requirements: requirements.map((r) => ({
         name: r.ComplianceRequirement?.name || "Unknown",
         category: r.ComplianceRequirement?.category || "OTHER",
         status: r.status,
@@ -173,13 +197,13 @@ export default function CompliancePage() {
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="p-6 rounded-xl border bg-card border-border">
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="rounded-lg border border-border bg-card p-5">
             <Skeleton className="h-6 w-40 mb-4" />
             <Skeleton className="h-12 w-24 mb-2" />
             <Skeleton className="h-3 w-full" />
           </div>
-          <div className="p-6 rounded-xl border bg-card border-border">
+          <div className="rounded-lg border border-border bg-card p-5">
             <Skeleton className="h-6 w-32 mb-4" />
             {[...Array(3)].map((_, i) => (
               <div key={i} className="space-y-1 mb-3">
@@ -192,7 +216,7 @@ export default function CompliancePage() {
         <div className="space-y-3">
           <Skeleton className="h-6 w-32 mb-4" />
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="p-4 rounded-xl border bg-card border-border space-y-2">
+            <div key={i} className="space-y-2 rounded-lg border border-border bg-card p-4">
               <Skeleton className="h-5 w-1/2" />
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-4 w-1/3" />
@@ -206,21 +230,21 @@ export default function CompliancePage() {
   if (requirements.length === 0) {
     return (
       <div className="space-y-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Compliance</h1>
-          <p className="text-muted-foreground mt-1">Track your compliance with Indian regulations</p>
-        </div>
-        <Card className="border-border/50">
+        <PageHeader
+          title="Compliance"
+          description="Track your compliance with Indian regulations."
+        />
+        <Card className="border-border">
           <CardContent className="py-12 text-center">
             <ClipboardList className="w-14 h-14 text-muted-foreground/30 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-foreground mb-2">No compliance data yet</h3>
             <p className="text-muted-foreground mb-6">Complete the onboarding process to generate your personalized compliance roadmap.</p>
-            <a href="/onboarding">
+            <Link href="/onboarding">
               <Button>
                 Start Onboarding
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -228,34 +252,34 @@ export default function CompliancePage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Compliance</h1>
-          <p className="text-muted-foreground mt-1">Track your compliance with Indian regulations</p>
-        </div>
-        <Button onClick={handleExportReport}>
-          <FileDown className="w-4 h-4 mr-2" />
-          Export Report
-        </Button>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Compliance"
+        description="Track your compliance with Indian regulations."
+        actions={(
+          <Button onClick={handleExportReport}>
+            <FileDown className="mr-2 h-4 w-4" />
+            Export Report
+          </Button>
+        )}
+      />
 
-      <div className="grid lg:grid-cols-2 gap-6">
-        <Card className="border-border/50">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="border-border">
+          <CardContent className="p-5">
+            <div className="mb-4 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">Compliance Score</h2>
                   <p className="text-sm text-muted-foreground">
-                    {requirements.filter((r: any) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
+                    {requirements.filter((r) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
                   </p>
                 </div>
               </div>
-              <div className={`text-5xl font-bold ${getScoreColor(complianceScore)}`}>
+              <div className={`text-4xl font-semibold ${getScoreColor(complianceScore)}`}>
                 {complianceScore}%
               </div>
             </div>
@@ -263,8 +287,8 @@ export default function CompliancePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-border/50">
-          <CardContent className="p-6">
+        <Card className="border-border">
+          <CardContent className="p-5">
             <h2 className="text-lg font-semibold text-foreground mb-4">By Category</h2>
             <div className="space-y-4">
               {categoryBreakdown.map((cat) => (
@@ -278,7 +302,7 @@ export default function CompliancePage() {
                       <span className="text-xs text-muted-foreground">({cat.compliant}/{cat.total})</span>
                     </div>
                   </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+                  <div className="h-2 w-full rounded-full bg-muted">
                     <div
                       className={`h-2 rounded-full transition-all duration-500 ${getProgressColor(cat.score) === "success" ? "bg-emerald-500" : getProgressColor(cat.score) === "warning" ? "bg-amber-500" : "bg-red-500"}`}
                       style={{ width: `${cat.score}%` }}
@@ -291,8 +315,8 @@ export default function CompliancePage() {
         </Card>
       </div>
 
-      <Card className="border-border/50">
-        <CardContent className="p-6">
+      <Card className="border-border">
+        <CardContent className="p-5">
           <h2 className="text-lg font-semibold text-foreground mb-4">Filing Calendar</h2>
           <ComplianceCalendar />
         </CardContent>
@@ -300,26 +324,27 @@ export default function CompliancePage() {
 
       <div className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground">Requirements</h2>
-        {requirements.map((req: any) => {
+        {requirements.map((req) => {
           const cr = req.ComplianceRequirement;
+          const category = cr?.category || "OTHER";
           return (
-            <Card key={req.id} className="border-border/50">
+            <Card key={req.id} className="border-border">
               <div className="p-4">
-                <div className="flex items-start justify-between gap-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-2">
                       <h3 className="font-medium text-foreground">{cr?.name}</h3>
-                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(cr?.category)}`}>
-                        {cr?.category}
+                      <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(category)}`}>
+                        {category}
                       </span>
-                      <ComplianceHelpTooltip category={cr?.category} />
+                      <ComplianceHelpTooltip category={category} />
                       {cr?.isMandatory && (
                         <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Mandatory</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{cr?.description}</p>
+                    <p className="mb-2 text-sm leading-6 text-muted-foreground">{cr?.description}</p>
                     {cr?.penaltyDescription && (
-                      <p className="text-xs text-destructive flex items-center gap-1">
+                      <p className="flex items-center gap-1 text-xs text-destructive">
                         <AlertTriangle className="w-3.5 h-3.5 flex-shrink-0" />
                         Penalty: {cr.penaltyDescription}
                       </p>
@@ -327,9 +352,9 @@ export default function CompliancePage() {
                   </div>
                   <Select
                     value={req.status}
-                    onValueChange={(value) => updateStatus(req.id, value as any)}
+                    onValueChange={(value) => updateStatus(req.id, value as ComplianceStatus)}
                   >
-                    <SelectTrigger className="w-[160px]">
+                    <SelectTrigger className="w-full sm:w-[170px]">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>

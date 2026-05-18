@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { MessageSquare, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 export function FeedbackWidget() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [isOpen, setIsOpen] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [type, setType] = useState<"bug" | "feature" | "general">("general");
@@ -43,57 +46,60 @@ export function FeedbackWidget() {
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-20 right-4 lg:bottom-8 z-50 bg-blue-600 text-white p-3 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+        className="fixed bottom-5 right-4 z-50 rounded-full bg-primary p-3 text-primary-foreground shadow-lg transition-colors hover:bg-primary/90 lg:bottom-6"
         title="Send feedback"
+        aria-label="Send feedback"
       >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-        </svg>
+        <MessageSquare className="h-5 w-5" />
       </button>
     );
   }
 
   return (
-    <div className="fixed bottom-20 right-4 lg:bottom-8 z-50 w-80 bg-white rounded-xl shadow-2xl border border-slate-200">
-      <div className="p-4 border-b flex items-center justify-between">
-        <h3 className="font-semibold text-slate-900">Send Feedback</h3>
-        <button onClick={() => setIsOpen(false)} className="text-slate-400 hover:text-slate-600">
-          ✕
+    <div className="fixed bottom-5 right-4 z-50 w-[calc(100vw-2rem)] max-w-sm rounded-lg border border-border bg-card text-card-foreground shadow-xl lg:bottom-6">
+      <div className="flex items-center justify-between border-b border-border p-4">
+        <h3 className="font-semibold">Send feedback</h3>
+        <button
+          onClick={() => setIsOpen(false)}
+          className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          aria-label="Close feedback"
+        >
+          <X className="h-4 w-4" />
         </button>
       </div>
-      <form onSubmit={handleSubmit} className="p-4 space-y-3">
+      <form onSubmit={handleSubmit} className="space-y-3 p-4">
         <div className="flex gap-2">
           {(["bug", "feature", "general"] as const).map((t) => (
             <button
               key={t}
               type="button"
               onClick={() => setType(t)}
-              className={`flex-1 py-1.5 text-xs font-medium rounded-lg border transition-colors ${
+              className={`flex-1 rounded-md border py-1.5 text-xs font-medium capitalize transition-colors ${
                 type === t
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-slate-600 border-slate-300 hover:border-blue-400"
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-border bg-background text-muted-foreground hover:border-primary/50"
               }`}
             >
-              {t === "bug" ? "🐛 Bug" : t === "feature" ? "💡 Feature" : "💬 General"}
+              {t}
             </button>
           ))}
         </div>
-        <textarea
+        <Textarea
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}
           placeholder="Tell us what you think..."
-          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none h-24 text-sm"
+          className="h-24 resize-none"
           maxLength={1000}
+          showCount
           required
         />
-        <p className="text-xs text-slate-500 text-right">{feedback.length}/1000</p>
-        <button
+        <Button
           type="submit"
           disabled={submitting || !feedback.trim()}
-          className="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          className="w-full"
         >
           {submitting ? "Sending..." : "Send Feedback"}
-        </button>
+        </Button>
       </form>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { exportUserData, downloadUserData } from "@/lib/data-export";
@@ -9,20 +9,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function SettingsPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
@@ -38,7 +35,11 @@ export default function SettingsPage() {
     if (profile) {
       setCompanyName(profile.companyName);
     }
-  };
+  }, [supabase]);
+
+  useEffect(() => {
+    void loadSettings();
+  }, [loadSettings]);
 
   const handleSave = async () => {
     setLoading(true);
@@ -115,14 +116,14 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-2xl">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account and business profile</p>
-      </div>
+    <div className="max-w-2xl space-y-6">
+      <PageHeader
+        title="Settings"
+        description="Manage your account and business profile."
+      />
 
-      <Card className="border-border/50">
-        <CardContent className="p-6">
+      <Card className="border-border">
+        <CardContent className="p-5">
           <div className="flex items-center gap-2 mb-6">
             <User className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Profile</h2>
@@ -163,8 +164,8 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/50">
-        <CardContent className="p-6">
+      <Card className="border-border">
+        <CardContent className="p-5">
           <div className="flex items-center gap-2 mb-6">
             <Info className="w-5 h-5 text-primary" />
             <h2 className="text-lg font-semibold text-foreground">Data & Privacy</h2>
@@ -215,8 +216,8 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      <Card className="border-border/50">
-        <CardContent className="p-6">
+      <Card className="border-border">
+        <CardContent className="p-5">
           <h2 className="text-lg font-semibold text-foreground mb-4">About</h2>
           <div className="space-y-2 text-sm text-muted-foreground">
             <p><strong className="text-foreground">LegalMint AI</strong> v2.0 (India Edition)</p>

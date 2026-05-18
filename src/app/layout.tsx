@@ -13,8 +13,9 @@ import { PageTransition } from "@/components/PageTransition";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://legalmint.ai"),
     title: {
-      default: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
+      default: "LegalMint AI - India's AI-Powered Legal Compliance Platform",
       template: "%s | LegalMint AI",
     },
   description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations. DPDP Act 2023, IT Act, GST, and more.",
@@ -25,9 +26,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_IN",
-    url: "https://legalease.ai",
+    url: "https://legalmint.ai",
     siteName: "LegalMint AI",
-    title: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
+    title: "LegalMint AI - India's AI-Powered Legal Compliance Platform",
     description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations.",
     images: [
       {
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LegalMint AI — India's AI-Powered Legal Compliance Platform",
+    title: "LegalMint AI - India's AI-Powered Legal Compliance Platform",
     description: "Generate compliant legal documents, track compliance, and stay updated with Indian regulations.",
     images: ["/og-image.png"],
   },
@@ -70,7 +71,7 @@ export default function RootLayout({
     "@type": "SoftwareApplication",
     name: "LegalMint AI",
     description: "India's AI-powered legal compliance platform for automated document generation and regulatory tracking.",
-    url: "https://legalease.ai",
+    url: "https://legalmint.ai",
     applicationCategory: "Legal",
     operatingSystem: "Web",
     offers: {
@@ -90,12 +91,12 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen bg-slate-50`}>
+      <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
         <ErrorBoundary>
           <ThemeProvider>
             <TRPCProvider>
               <PageTransition>{children}</PageTransition>
-              <LegalDisclaimer className="fixed bottom-0 left-0 right-0 z-40 rounded-none" />
+              <LegalDisclaimer />
               <Toaster position="top-right" />
               <Analytics />
             </TRPCProvider>

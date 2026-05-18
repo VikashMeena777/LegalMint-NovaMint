@@ -1,12 +1,12 @@
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
-    <div className={`animate-pulse bg-slate-200 rounded ${className}`} />
+    <div className={`animate-pulse rounded bg-muted ${className}`} />
   );
 }
 
 export function CardSkeleton() {
   return (
-    <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+    <div className="space-y-4 rounded-lg border border-border bg-card p-5">
       <Skeleton className="h-6 w-3/4" />
       <Skeleton className="h-4 w-full" />
       <Skeleton className="h-4 w-2/3" />
@@ -16,7 +16,7 @@ export function CardSkeleton() {
 
 export function PageSkeleton() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div>
         <Skeleton className="h-8 w-48 mb-2" />
         <Skeleton className="h-4 w-72" />
@@ -39,7 +39,7 @@ export function ListSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="space-y-3">
       {[...Array(count)].map((_, i) => (
-        <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
+        <div key={i} className="rounded-lg border border-border bg-card p-4">
           <Skeleton className="h-5 w-1/2 mb-2" />
           <Skeleton className="h-4 w-3/4" />
         </div>

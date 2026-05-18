@@ -47,6 +47,7 @@ function Avatar({ src, alt, name, size = "md", className }: AvatarProps) {
 
   if (src && !hasError) {
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={alt || name || "Avatar"}

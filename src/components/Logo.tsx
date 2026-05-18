@@ -25,7 +25,7 @@ export function Logo({ className, showText = true, size = "md" }: LogoProps) {
     <Link href="/" className={cn("flex items-center gap-2.5 group", className)}>
       <div
         className={cn(
-          "gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow",
+          "gradient-primary rounded-lg flex items-center justify-center transition-colors",
           sizeClasses[size]
         )}
       >

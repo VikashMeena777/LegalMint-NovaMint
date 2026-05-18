@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
-import { Scale, Loader2, KeyRound, ArrowLeft } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { Logo } from "@/components/Logo";
 
 function ResetForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -68,8 +68,8 @@ function ResetForm() {
   };
 
   return (
-    <Card className="border-border/50 shadow-sm">
-      <CardContent className="p-8">
+    <Card className="border-border">
+      <CardContent className="p-6">
         {step === "request" ? (
           <form onSubmit={handleRequestReset} className="space-y-4">
             <Input
@@ -84,12 +84,12 @@ function ResetForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Sending...
                 </>
               ) : (
                 <>
-                  <KeyRound className="w-4 h-4 mr-2" />
+                  <KeyRound className="mr-2 h-4 w-4" />
                   Send Reset Link
                 </>
               )}
@@ -121,7 +121,7 @@ function ResetForm() {
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Updating...
                 </>
               ) : (
@@ -137,32 +137,21 @@ function ResetForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-white px-4">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-b from-primary/5 to-transparent rounded-full blur-3xl" />
-      </div>
-
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-6 group">
-            <div className="w-10 h-10 gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-              <Scale className="w-5 h-5 text-white" />
-            </div>
-            <span className="font-bold text-xl text-foreground">
-              Legal<span className="text-primary">Ease</span> AI
-            </span>
-          </Link>
-          <h1 className="text-2xl font-bold text-foreground">Reset Password</h1>
-          <p className="text-muted-foreground mt-1">Enter your email to receive a reset link</p>
+        <div className="mb-8 text-center">
+          <Logo size="md" className="mb-6 justify-center" />
+          <h1 className="text-2xl font-semibold text-foreground">Reset Password</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Enter your email to receive a reset link</p>
         </div>
 
-        <Suspense fallback={<div className="bg-card p-8 rounded-xl border border-border text-center">Loading...</div>}>
+        <Suspense fallback={<div className="rounded-lg border border-border bg-card p-6 text-center">Loading...</div>}>
           <ResetForm />
         </Suspense>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          <Link href="/login" className="text-primary hover:underline font-medium inline-flex items-center gap-1">
-            <ArrowLeft className="w-3 h-3" />
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          <Link href="/login" className="inline-flex items-center gap-1 font-medium text-primary hover:underline">
+            <ArrowLeft className="h-3 w-3" />
             Back to login
           </Link>
         </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -8,13 +8,13 @@ interface Command {
   id: string;
   label: string;
   shortcut?: string;
-  action: () => void;
+  action: () => void | Promise<void>;
   category: string;
 }
 
 export function CommandPalette() {
   const router = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
@@ -52,7 +52,16 @@ export function CommandPalette() {
     { id: "terms", label: "Generate Terms of Service", action: () => router.push("/documents"), category: "Documents" },
     { id: "nda", label: "Generate NDA", action: () => router.push("/documents"), category: "Documents" },
     { id: "employment", label: "Generate Employment Agreement", action: () => router.push("/documents"), category: "Documents" },
-    { id: "signout", label: "Sign Out", shortcut: "⌘ Q", action: async () => { await supabase.auth.signOut(); window.location.href = "/"; }, category: "Account" },
+    {
+      id: "signout",
+      label: "Sign Out",
+      shortcut: "Ctrl Q",
+      action: async () => {
+        await supabase.auth.signOut();
+        window.location.href = "/";
+      },
+      category: "Account",
+    },
   ];
 
   const filtered = commands.filter((cmd) =>
@@ -70,39 +79,39 @@ export function CommandPalette() {
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-black/50 flex items-start justify-center pt-[20vh]"
+      className="fixed inset-0 z-[100] flex items-start justify-center bg-foreground/35 px-4 pt-[18vh] backdrop-blur-sm"
       onClick={() => setIsOpen(false)}
     >
       <div
-        className="w-full max-w-lg bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-border bg-popover text-popover-foreground shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="border-b px-4 py-3">
+        <div className="border-b border-border px-4 py-3">
           <input
             ref={inputRef}
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Type a command or search..."
-            className="w-full outline-none text-sm text-slate-900 placeholder:text-slate-400"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         <div className="max-h-80 overflow-y-auto p-2">
           {Object.entries(grouped).map(([category, cmds]) => (
             <div key={category} className="mb-2">
-              <p className="text-xs font-medium text-slate-500 px-2 py-1">{category}</p>
+              <p className="px-2 py-1 text-xs font-medium text-muted-foreground">{category}</p>
               {cmds.map((cmd) => (
                 <button
                   key={cmd.id}
                   onClick={() => {
-                    cmd.action();
+                    void cmd.action();
                     setIsOpen(false);
                   }}
-                  className="w-full flex items-center justify-between px-2 py-2 rounded-lg text-sm hover:bg-slate-100 transition-colors"
+                  className="flex w-full items-center justify-between rounded-md px-2 py-2 text-sm transition-colors hover:bg-accent"
                 >
-                  <span className="text-slate-700">{cmd.label}</span>
+                  <span>{cmd.label}</span>
                   {cmd.shortcut && (
-                    <kbd className="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
                       {cmd.shortcut}
                     </kbd>
                   )}
@@ -111,12 +120,12 @@ export function CommandPalette() {
             </div>
           ))}
           {filtered.length === 0 && (
-            <p className="text-center text-sm text-slate-500 py-4">No commands found</p>
+            <p className="py-4 text-center text-sm text-muted-foreground">No commands found</p>
           )}
         </div>
-        <div className="border-t px-4 py-2 flex items-center justify-between text-xs text-slate-500">
-          <span>Press <kbd className="bg-slate-100 px-1 rounded">Ctrl+K</kbd> to toggle</span>
-          <span>Press <kbd className="bg-slate-100 px-1 rounded">Esc</kbd> to close</span>
+        <div className="flex items-center justify-between border-t border-border px-4 py-2 text-xs text-muted-foreground">
+          <span>Press <kbd className="rounded border border-border bg-muted px-1">Ctrl+K</kbd> to toggle</span>
+          <span>Press <kbd className="rounded border border-border bg-muted px-1">Esc</kbd> to close</span>
         </div>
       </div>
     </div>

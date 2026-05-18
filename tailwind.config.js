@@ -9,9 +9,9 @@ module.exports = {
   theme: {
     container: {
       center: true,
-      padding: "2rem",
+      padding: "1rem",
       screens: {
-        "2xl": "1400px",
+        "2xl": "1280px",
       },
     },
     extend: {
@@ -78,15 +78,17 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius)",
+        "2xl": "calc(var(--radius) + 2px)",
       },
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
         display: ["Inter", "system-ui", "sans-serif"],
       },
       fontSize: {
-        "display-lg": ["3.5rem", { lineHeight: "1.1", letterSpacing: "-0.03em", fontWeight: "700" }],
-        "display-md": ["2.5rem", { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" }],
-        "display-sm": ["2rem", { lineHeight: "1.2", letterSpacing: "-0.02em", fontWeight: "600" }],
+        "display-lg": ["3.5rem", { lineHeight: "1.1", letterSpacing: "0em", fontWeight: "700" }],
+        "display-md": ["2.5rem", { lineHeight: "1.1", letterSpacing: "0em", fontWeight: "700" }],
+        "display-sm": ["2rem", { lineHeight: "1.2", letterSpacing: "0em", fontWeight: "600" }],
       },
       animation: {
         "fade-in": "fadeIn 0.5s ease-out",

@@ -1,6 +1,17 @@
 import { createClient } from "@/lib/supabase/client";
 
-export async function exportUserData(userId: string) {
+export interface UserDataExport {
+  exportDate: string;
+  dataSubject: { userId: string };
+  profile: unknown;
+  documents: unknown[];
+  subscriptions: unknown[];
+  auditLogs: unknown[];
+  alerts: unknown[];
+  complianceMappings: unknown[];
+}
+
+export async function exportUserData(userId: string): Promise<UserDataExport> {
   const supabase = createClient();
 
   const { data: profile } = await supabase
@@ -52,7 +63,7 @@ export async function exportUserData(userId: string) {
   return exportData;
 }
 
-export function downloadUserData(exportData: any) {
+export function downloadUserData(exportData: UserDataExport) {
   const json = JSON.stringify(exportData, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   const url = window.URL.createObjectURL(blob);

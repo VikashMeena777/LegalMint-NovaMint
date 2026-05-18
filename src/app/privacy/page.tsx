@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { ArrowLeft, Scale, Shield, Mail } from "lucide-react";
+import { ArrowLeft, Shield, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Logo } from "@/components/Logo";
 
 export default function PrivacyPage() {
   return (
@@ -9,14 +10,7 @@ export default function PrivacyPage() {
       <nav className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5 group">
-              <div className="w-9 h-9 gradient-primary rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
-                <Scale className="w-5 h-5 text-white" />
-              </div>
-              <span className="font-bold text-xl text-foreground">
-                Legal<span className="text-primary">Ease</span> AI
-              </span>
-            </Link>
+            <Logo size="sm" />
             <Link href="/">
               <Button variant="ghost" size="sm">
                 <ArrowLeft className="w-4 h-4 mr-2" />
@@ -139,7 +133,7 @@ export default function PrivacyPage() {
                 <Mail className="w-4 h-4 text-primary" />
                 <div>
                   <strong>Grievance Officer, LegalMint AI</strong><br />
-                  Email: <strong>privacy@legalease.ai</strong><br />
+                  Email: <strong>privacy@legalmint.ai</strong><br />
                   Response time: Within 72 hours
                 </div>
               </div>
@@ -159,7 +153,7 @@ export default function PrivacyPage() {
       <footer className="border-t border-border/50 py-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <p className="text-sm text-muted-foreground text-center">
-            © 2026 LegalMint AI. Data stored in India. Compliant with DPDP Act 2023.
+            &copy; 2026 LegalMint AI. Data stored in India. Compliant with DPDP Act 2023.
           </p>
         </div>
       </footer>

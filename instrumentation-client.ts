@@ -17,3 +17,5 @@ Sentry.init({
     "Non-Error promise rejection captured",
   ],
 });
+
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

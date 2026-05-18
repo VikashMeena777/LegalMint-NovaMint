@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
@@ -18,6 +18,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { PageHeader } from "@/components/PageHeader";
+
+type DocumentRecord = {
+  id: string;
+  title: string;
+  content: string;
+  status: string;
+  createdAt: string;
+  templateId?: string | null;
+};
+
+type TemplateProfile = {
+  companyName?: string | null;
+  website?: string | null;
+  incorporatedState?: string | null;
+  grievanceOfficerEmail?: string | null;
+};
 
 const DOCUMENT_TYPES = [
   { type: "PRIVACY_POLICY", label: "Privacy Policy", icon: Lock, color: "text-sky-600", bgColor: "bg-sky-100 dark:bg-sky-900/30", desc: "DPDP Act 2023 compliant" },
@@ -30,10 +47,10 @@ const DOCUMENT_TYPES = [
 ];
 
 export default function DocumentsPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [documents, setDocuments] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<DocumentRecord[]>([]);
   const [exporting, setExporting] = useState<string | null>(null);
   const [previewDoc, setPreviewDoc] = useState<{ title: string; content: string } | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -45,7 +62,7 @@ export default function DocumentsPage() {
   const { data: existingDocs, isLoading: docsLoading } = trpc.document.list.useQuery();
 
   const allDocs = useMemo(() => {
-    const base = [...(existingDocs || []), ...documents];
+    const base = [...((existingDocs || []) as DocumentRecord[]), ...documents];
     const unique = base.filter((doc, i, arr) => arr.findIndex(d => d.id === doc.id) === i);
 
     return unique.filter((doc) => {
@@ -128,7 +145,7 @@ export default function DocumentsPage() {
     setSelectedType(null);
   };
 
-  const handleExport = async (doc: any, format: "DOCX" | "HTML" | "MARKDOWN" | "PDF") => {
+  const handleExport = async (doc: DocumentRecord, format: "DOCX" | "HTML" | "MARKDOWN" | "PDF") => {
     setExporting(doc.id);
 
     try {
@@ -215,7 +232,7 @@ export default function DocumentsPage() {
     }
   };
 
-  const fillTemplate = (template: string, profile: any): string => {
+  const fillTemplate = (template: string, profile: TemplateProfile): string => {
     let content = template;
     const replacements: Record<string, string> = {
       "{{COMPANY_NAME}}": profile.companyName || "[Company Name]",
@@ -245,7 +262,7 @@ export default function DocumentsPage() {
       REFUND_POLICY: "Refund & Cancellation Policy",
       GRIEVANCE_POLICY: "Grievance Redressal Policy",
     };
-    return `${companyName} — ${titles[type] || type}`;
+    return `${companyName} - ${titles[type] || type}`;
   };
 
   const getStatusBadge = (status: string) => {
@@ -264,9 +281,9 @@ export default function DocumentsPage() {
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="p-6 bg-card border border-border rounded-xl space-y-3">
+            <div key={i} className="space-y-3 rounded-lg border border-border bg-card p-5">
               <Skeleton className="h-10 w-10 rounded-lg" />
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-48" />
@@ -278,31 +295,31 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Documents</h1>
-        <p className="text-muted-foreground mt-1">Generate compliant legal documents for your Indian business</p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        title="Documents"
+        description="Generate compliant legal documents for your Indian business."
+      />
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {DOCUMENT_TYPES.map((doc) => (
-          <Card
+          <button
+            type="button"
             key={doc.type}
-            className="group cursor-pointer border-border/50 hover:border-primary/30 hover:shadow-lg transition-all"
+            className="group rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
             onClick={() => handleGenerate(doc.type)}
+            disabled={generating}
           >
-            <CardContent className="p-5">
-              <div className={`w-11 h-11 rounded-xl ${doc.bgColor} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                {generating && selectedType === doc.type ? (
-                  <Loader2 className={`w-5 h-5 ${doc.color} animate-spin`} />
-                ) : (
-                  <doc.icon className={`w-5 h-5 ${doc.color}`} />
-                )}
-              </div>
-              <h3 className="font-semibold text-foreground mb-1">{doc.label}</h3>
-              <p className="text-sm text-muted-foreground">{doc.desc}</p>
-            </CardContent>
-          </Card>
+            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${doc.bgColor}`}>
+              {generating && selectedType === doc.type ? (
+                <Loader2 className={`h-5 w-5 ${doc.color} animate-spin`} />
+              ) : (
+                <doc.icon className={`h-5 w-5 ${doc.color}`} />
+              )}
+            </div>
+            <h3 className="mb-1 font-semibold text-foreground">{doc.label}</h3>
+            <p className="text-sm text-muted-foreground">{doc.desc}</p>
+          </button>
         ))}
       </div>
 
@@ -310,7 +327,7 @@ export default function DocumentsPage() {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <h2 className="text-lg font-semibold text-foreground">Your Documents ({allDocs.length})</h2>
           {selectedIds.size > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge variant="info">{selectedIds.size} selected</Badge>
               <Button variant="outline" size="sm" onClick={() => handleBulkExport("PDF")}>
                 <Download className="w-4 h-4 mr-1.5" />
@@ -338,7 +355,7 @@ export default function DocumentsPage() {
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-full sm:w-[160px]">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -349,7 +366,7 @@ export default function DocumentsPage() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -362,7 +379,7 @@ export default function DocumentsPage() {
         </div>
 
         {allDocs.length === 0 ? (
-          <Card className="border-border/50">
+          <Card className="border-border">
             <CardContent className="py-12 text-center">
               <File className="w-14 h-14 text-muted-foreground/30 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-foreground mb-1">No documents found</h3>
@@ -375,9 +392,10 @@ export default function DocumentsPage() {
           </Card>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 px-4 py-2.5 bg-muted rounded-lg text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm text-muted-foreground">
               <input
                 type="checkbox"
+                aria-label="Select all documents"
                 checked={selectedIds.size === allDocs.length && allDocs.length > 0}
                 onChange={toggleSelectAll}
                 className="rounded border-input"
@@ -385,24 +403,25 @@ export default function DocumentsPage() {
               <span className="font-medium">Select all</span>
             </div>
             {allDocs.map((doc) => (
-              <Card key={doc.id} className="border-border/50">
+              <Card key={doc.id} className="border-border">
                 <div className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
                       <input
                         type="checkbox"
+                        aria-label={`Select ${doc.title}`}
                         checked={selectedIds.has(doc.id)}
                         onChange={() => toggleSelect(doc.id)}
                         className="rounded border-input"
                       />
-                      <div>
-                        <h3 className="font-medium text-foreground">{doc.title}</h3>
+                      <div className="min-w-0">
+                        <h3 className="truncate font-medium text-foreground">{doc.title}</h3>
                         <p className="text-sm text-muted-foreground">
                           Created {new Date(doc.createdAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
                       {getStatusBadge(doc.status)}
                       <Button
                         variant="ghost"
