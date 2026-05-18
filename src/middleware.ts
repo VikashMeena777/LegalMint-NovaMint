@@ -1,4 +1,4 @@
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
+import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { rateLimitMiddleware } from "@/lib/rate-limit";
@@ -7,8 +7,32 @@ export async function middleware(req: NextRequest) {
   const rateLimitResponse = rateLimitMiddleware(req);
   if (rateLimitResponse) return rateLimitResponse;
 
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req, res });
+  let res = NextResponse.next({
+    request: {
+      headers: req.headers,
+    },
+  });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            if (options) {
+              res.cookies.set(name, value, options);
+            } else {
+              res.cookies.set(name, value);
+            }
+          });
+        },
+      },
+    }
+  );
 
   const {
     data: { session },

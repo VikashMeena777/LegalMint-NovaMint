@@ -4,19 +4,27 @@ import { createClient } from "@supabase/supabase-js";
 import superjson from "superjson";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export async function createContext({ req }: CreateNextContextOptions) {
-  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const authHeader = req.headers.authorization;
   const cookie = req.headers.cookie;
-
-  if (authHeader) {
-    supabase.auth.setSession({
-      access_token: authHeader.replace("Bearer ", ""),
-      refresh_token: "",
-    });
+  if (cookie) {
+    const tokenMatch = cookie.match(/sb-[a-z]+-auth-token=([^;]+)/);
+    if (tokenMatch) {
+      try {
+        const token = JSON.parse(decodeURIComponent(tokenMatch[1]));
+        if (token?.access_token) {
+          await supabase.auth.setSession({
+            access_token: token.access_token,
+            refresh_token: token.refresh_token || "",
+          });
+        }
+      } catch {
+        // Invalid cookie format, ignore
+      }
+    }
   }
 
   const {

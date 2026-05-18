@@ -1,17 +1,26 @@
-import { createClient } from "@supabase/supabase-js";
-import type { Database } from "@/types/database";
+import { createServerClient as createSupabaseServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 export function createServerClient() {
   const cookieStore = cookies();
-  const token = cookieStore.get("supabase-auth-token");
 
-  return createClient<Database>(supabaseUrl, supabaseServiceKey, {
-    global: {
-      headers: token ? { Authorization: `Bearer ${token.value}` } : {},
+  return createSupabaseServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options as any)
+          );
+        } catch {
+          // The `setAll` method was called from a Server Component.
+        }
+      },
     },
   });
 }
