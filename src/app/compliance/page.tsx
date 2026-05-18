@@ -1,9 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { ComplianceCalendar } from "@/components/ComplianceCalendar";
+import { Skeleton } from "@/components/Skeleton";
+import { downloadComplianceReport, ComplianceReportData } from "@/lib/compliance-report";
+import { ComplianceHelpTooltip } from "@/components/Tooltip";
 
 export default function CompliancePage() {
   const supabase = createClient();
@@ -80,6 +83,22 @@ export default function CompliancePage() {
     }
   };
 
+  const categoryBreakdown = useMemo(() => {
+    const categories: Record<string, { total: number; compliant: number; inProgress: number }> = {};
+    requirements.forEach((req: any) => {
+      const cat = req.ComplianceRequirement?.category || "OTHER";
+      if (!categories[cat]) categories[cat] = { total: 0, compliant: 0, inProgress: 0 };
+      categories[cat].total++;
+      if (req.status === "COMPLIANT") categories[cat].compliant++;
+      if (req.status === "IN_PROGRESS") categories[cat].inProgress++;
+    });
+    return Object.entries(categories).map(([name, data]) => ({
+      name,
+      ...data,
+      score: data.total > 0 ? Math.round(((data.compliant + data.inProgress * 0.5) / data.total) * 100) : 0,
+    }));
+  }, [requirements]);
+
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
       PRIVACY: "bg-blue-100 text-blue-700",
@@ -111,10 +130,58 @@ export default function CompliancePage() {
     return "text-red-600";
   };
 
+  const getScoreBarColor = (score: number) => {
+    if (score >= 80) return "bg-green-500";
+    if (score >= 50) return "bg-amber-500";
+    return "bg-red-500";
+  };
+
+  const handleExportReport = () => {
+    const reportData: ComplianceReportData = {
+      companyName: "Business Profile",
+      generatedAt: new Date().toISOString(),
+      overallScore: complianceScore,
+      totalRequirements: requirements.length,
+      compliantCount: requirements.filter((r: any) => r.status === "COMPLIANT").length,
+      nonCompliantCount: requirements.filter((r: any) => r.status === "NON_COMPLIANT").length,
+      inProgressCount: requirements.filter((r: any) => r.status === "IN_PROGRESS").length,
+      notApplicableCount: requirements.filter((r: any) => r.status === "NOT_APPLICABLE").length,
+      categories: categoryBreakdown,
+      requirements: requirements.map((r: any) => ({
+        name: r.ComplianceRequirement?.name || "Unknown",
+        category: r.ComplianceRequirement?.category || "OTHER",
+        status: r.status,
+        isMandatory: r.ComplianceRequirement?.isMandatory || false,
+        description: r.ComplianceRequirement?.description || "",
+        lastReviewed: r.lastReviewedAt,
+      })),
+    };
+    downloadComplianceReport(reportData);
+    toast.success("Compliance report downloaded");
+  };
+
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-8 w-32 mb-2" />
+          <Skeleton className="h-4 w-48" />
+        </div>
+        <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-4">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="h-12 w-24" />
+          <Skeleton className="h-3 w-full" />
+        </div>
+        <div className="space-y-3">
+          <Skeleton className="h-6 w-32 mb-4" />
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+              <Skeleton className="h-5 w-1/2" />
+              <Skeleton className="h-4 w-3/4" />
+              <Skeleton className="h-4 w-1/3" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -140,31 +207,61 @@ export default function CompliancePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Compliance</h1>
-        <p className="text-slate-600 mt-1">Track your compliance with Indian regulations</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Compliance</h1>
+          <p className="text-slate-600 mt-1">Track your compliance with Indian regulations</p>
+        </div>
+        <button
+          onClick={handleExportReport}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+        >
+          Export Report
+        </button>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">Compliance Score</h2>
-            <p className="text-sm text-slate-500 mt-1">
-              {requirements.filter((r: any) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
-            </p>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-slate-900">Compliance Score</h2>
+              <p className="text-sm text-slate-500 mt-1">
+                {requirements.filter((r: any) => r.status === "COMPLIANT").length} of {requirements.length} requirements met
+              </p>
+            </div>
+            <div className={`text-5xl font-bold ${getScoreColor(complianceScore)}`}>
+              {complianceScore}%
+            </div>
           </div>
-          <div className={`text-5xl font-bold ${getScoreColor(complianceScore)}`}>
-            {complianceScore}%
+          <div className="mt-4 w-full bg-slate-200 rounded-full h-3">
+            <div
+              className={`h-3 rounded-full transition-all duration-500 ${getScoreBarColor(complianceScore)}`}
+              style={{ width: `${complianceScore}%` }}
+            />
           </div>
         </div>
-        <div className="mt-4 w-full bg-slate-200 rounded-full h-3">
-          <div
-            className={`h-3 rounded-full transition-all duration-500 ${
-              complianceScore >= 80 ? "bg-green-500" :
-              complianceScore >= 50 ? "bg-amber-500" : "bg-red-500"
-            }`}
-            style={{ width: `${complianceScore}%` }}
-          />
+
+        <div className="bg-white border border-slate-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">By Category</h2>
+          <div className="space-y-3">
+            {categoryBreakdown.map((cat) => (
+              <div key={cat.name} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(cat.name)}`}>
+                    {cat.name}
+                  </span>
+                  <span className="text-slate-600">{cat.score}%</span>
+                </div>
+                <div className="w-full bg-slate-200 rounded-full h-2">
+                  <div
+                    className={`h-2 rounded-full transition-all duration-500 ${getScoreBarColor(cat.score)}`}
+                    style={{ width: `${cat.score}%` }}
+                  />
+                </div>
+                <p className="text-xs text-slate-500">{cat.compliant}/{cat.total} compliant</p>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -186,6 +283,7 @@ export default function CompliancePage() {
                     <span className={`px-2 py-0.5 rounded text-xs font-medium ${getCategoryColor(cr?.category)}`}>
                       {cr?.category}
                     </span>
+                    <ComplianceHelpTooltip category={cr?.category} />
                     {cr?.isMandatory && (
                       <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700">
                         Mandatory

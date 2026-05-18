@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Toaster } from "sonner";
 import { FeedbackWidget } from "@/components/FeedbackWidget";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CommandPalette } from "@/components/CommandPalette";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: "📊" },
@@ -94,6 +95,7 @@ export default async function DashboardLayout({
       </div>
 
       <FeedbackWidget />
+      <CommandPalette />
       <Toaster position="top-right" />
     </div>
   );

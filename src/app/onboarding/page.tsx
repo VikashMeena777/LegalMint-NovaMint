@@ -108,9 +108,42 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (messages.length === 0) {
-      addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+      const saved = localStorage.getItem("onboarding_progress");
+      if (saved) {
+        try {
+          const { step, profile: savedProfile, messages: savedMessages } = JSON.parse(saved);
+          if (savedMessages?.length > 0) setMessages(savedMessages);
+          if (savedProfile) setProfile(savedProfile);
+          if (step > 0) {
+            setCurrentStep(step);
+            const nextQuestion = QUESTIONS[step];
+            if (nextQuestion) {
+              setTimeout(() => {
+                addAiMessage(nextQuestion.prompt + (nextQuestion.options ? `\n\nOptions: ${nextQuestion.options.join(" | ")}` : ""));
+              }, 500);
+            }
+          } else {
+            addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+          }
+        } catch {
+          localStorage.removeItem("onboarding_progress");
+          addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+        }
+      } else {
+        addAiMessage("Namaste! I'm your LegalEase AI compliance assistant. I'll help you understand which legal documents your Indian business needs and which regulations apply to you.\n\nLet's start — what is the name of your business?");
+      }
     }
   }, []);
+
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("onboarding_progress", JSON.stringify({
+        step: currentStep,
+        profile,
+        messages,
+      }));
+    }
+  }, [messages, currentStep, profile]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -210,6 +243,7 @@ export default function OnboardingPage() {
 
       addAiMessage("Your compliance roadmap is ready! Based on your business profile, I've identified the key regulations that apply to you and the documents you need.\n\nClick 'Go to Dashboard' to view your compliance roadmap and start generating documents.");
       setLoading(false);
+      localStorage.removeItem("onboarding_progress");
     } catch {
       toast.error("Something went wrong. Please try again.");
       setLoading(false);

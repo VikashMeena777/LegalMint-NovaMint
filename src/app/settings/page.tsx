@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
+import { exportUserData, downloadUserData } from "@/lib/data-export";
 
 export default function SettingsPage() {
   const supabase = createClient();
@@ -10,6 +11,7 @@ export default function SettingsPage() {
   const [email, setEmail] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -63,6 +65,25 @@ export default function SettingsPage() {
     }
 
     setLoading(false);
+  };
+
+  const handleExportData = async () => {
+    setExporting(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Please sign in");
+        setExporting(false);
+        return;
+      }
+
+      const exportData = await exportUserData(user.id);
+      downloadUserData(exportData);
+      toast.success("Data export downloaded");
+    } catch {
+      toast.error("Failed to export data");
+    }
+    setExporting(false);
   };
 
   const handleDeleteAccount = async () => {
@@ -143,8 +164,12 @@ export default function SettingsPage() {
           <div>
             <h3 className="font-medium text-slate-900">Export My Data</h3>
             <p className="text-sm text-slate-600 mt-1">Download all your data in a machine-readable format (DPDP Act right).</p>
-            <button className="mt-2 text-sm text-blue-600 hover:underline">
-              Request Data Export
+            <button
+              onClick={handleExportData}
+              disabled={exporting}
+              className="mt-2 text-sm text-blue-600 hover:underline disabled:opacity-50"
+            >
+              {exporting ? "Preparing export..." : "Download My Data (JSON)"}
             </button>
           </div>
           <div className="border-t pt-4">

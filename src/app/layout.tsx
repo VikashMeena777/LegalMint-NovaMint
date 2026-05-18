@@ -6,6 +6,8 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import { Analytics } from "@vercel/analytics/react";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -62,8 +64,31 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    name: "LegalEase AI",
+    description: "India's AI-powered legal compliance platform for automated document generation and regulatory tracking.",
+    url: "https://legalease.ai",
+    applicationCategory: "Legal",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "INR",
+    },
+    areaServed: "IN",
+  };
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          id="json-ld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
       <body className={`${inter.className} min-h-screen bg-slate-50`}>
         <ErrorBoundary>
           <ThemeProvider>
@@ -71,6 +96,7 @@ export default function RootLayout({
               {children}
               <LegalDisclaimer className="fixed bottom-0 left-0 right-0 z-40 rounded-none" />
               <Toaster position="top-right" />
+              <Analytics />
             </TRPCProvider>
           </ThemeProvider>
         </ErrorBoundary>
