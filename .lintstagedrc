@@ -1,0 +1,9 @@
+{
+  "src/**/*.{ts,tsx}": [
+    "next lint --fix",
+    "tsc --noEmit --pretty"
+  ],
+  "src/**/*.{test,spec}.{ts,tsx}": [
+    "vitest run --passWithNoTests"
+  ]
+}

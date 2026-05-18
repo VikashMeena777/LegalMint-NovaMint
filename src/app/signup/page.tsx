@@ -1,14 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { sendWelcomeEmail } from "@/lib/email";
 
 export default function SignupPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -42,7 +40,9 @@ export default function SignupPage() {
 
     await sendWelcomeEmail(email, name);
     toast.success("Account created! Check your email to verify.");
-    router.push("/login");
+    
+    // Use window.location for a full page navigation
+    window.location.href = "/login";
   };
 
   const handleGoogleSignup = async () => {

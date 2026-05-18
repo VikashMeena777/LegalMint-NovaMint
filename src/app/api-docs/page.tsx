@@ -42,7 +42,7 @@ const ENDPOINTS: Endpoint[] = [
     path: "/api/trpc/business.create",
     description: "Create a new business profile",
     auth: true,
-    body: { companyName: "string", businessEntity: "enum", businessType: "enum", ... },
+    body: { companyName: "string", businessEntity: "enum", businessType: "enum" },
   },
   {
     method: "GET",

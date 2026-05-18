@@ -15,10 +15,24 @@ export function sanitizeHtml(html: string): string {
     "thead", "tbody", "tr", "th", "td", "span", "div",
   ];
 
-  const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
-  return html.replace(tagRegex, (match, tag) => {
-    return allowedTags.includes(tag.toLowerCase()) ? match : "";
+  const dangerousTags = ["script", "iframe", "object", "embed", "form", "input", "button", "select", "textarea", "style", "link", "meta", "base"];
+
+  let result = html;
+
+  dangerousTags.forEach((tag) => {
+    const regex = new RegExp(`<${tag}[^>]*>[\\s\\S]*?<\\/${tag}>`, "gi");
+    result = result.replace(regex, "");
+    const selfClosingRegex = new RegExp(`<${tag}[^>]*\/?>`, "gi");
+    result = result.replace(selfClosingRegex, "");
   });
+
+  const tagRegex = /<\/?([a-z][a-z0-9]*)\b[^>]*>/gi;
+  result = result.replace(tagRegex, (match, tag) => {
+    if (!allowedTags.includes(tag.toLowerCase())) return "";
+    return match.replace(/\s+(on\w+|style)\s*=\s*["'][^"']*["']/gi, "");
+  });
+
+  return result;
 }
 
 export function validateEmail(email: string): boolean {

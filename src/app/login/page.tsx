@@ -1,13 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const router = useRouter();
   const supabase = createClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,8 +27,9 @@ export default function LoginPage() {
     }
 
     toast.success("Logged in successfully!");
-    router.push("/dashboard");
-    router.refresh();
+    
+    // Use window.location for a full page navigation to ensure cookies are set
+    window.location.href = "/dashboard";
   };
 
   const handleGoogleLogin = async () => {
