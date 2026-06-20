@@ -4,12 +4,14 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { exportUserData, downloadUserData } from "@/lib/data-export";
-import { User, Download, Trash2, Info, Save, Loader2 } from "lucide-react";
+import { User, Download, Trash2, Info, Save, Loader2, ShieldAlert, KeyRound } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { PageHeader } from "@/components/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), []);
@@ -98,134 +100,223 @@ export default function SettingsPage() {
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const response = await fetch("/api/auth/delete-account", {
+        method: "POST",
+      });
 
-      await supabase
-        .from("BusinessProfile")
-        .delete()
-        .eq("userId", user.id);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to delete account");
+      }
 
-      await supabase.auth.admin.deleteUser(user.id);
-
-      toast.success("Account deleted");
+      await supabase.auth.signOut();
+      toast.success("Account deleted successfully");
       window.location.href = "/";
-    } catch {
-      toast.error("Failed to delete account");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete account");
     }
   };
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6 animate-fade-in font-body">
       <PageHeader
         title="Settings"
-        description="Manage your account and business profile."
+        description="Manage your account profile, privacy constraints, and legal configurations."
       />
 
-      <Card className="border-border">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-6">
-            <User className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Profile</h2>
-          </div>
-          <div className="space-y-5">
-            <Input
-              label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
-            />
-            <Input
-              label="Email"
-              value={email}
-              disabled
-              helperText="Email cannot be changed"
-            />
-            <Input
-              label="Company Name"
-              value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
-              placeholder="Your Company Pvt Ltd"
-            />
-            <Button onClick={handleSave} disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="w-4 h-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full sm:w-[420px] bg-muted/60 p-1 border border-border/50 rounded-xl mb-6">
+          <TabsTrigger value="profile" className="rounded-lg text-xs font-semibold uppercase tracking-wider gap-1.5 py-2">
+            <User className="w-3.5 h-3.5" />
+            Profile
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="rounded-lg text-xs font-semibold uppercase tracking-wider gap-1.5 py-2">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            Privacy
+          </TabsTrigger>
+          <TabsTrigger value="about" className="rounded-lg text-xs font-semibold uppercase tracking-wider gap-1.5 py-2">
+            <Info className="w-3.5 h-3.5" />
+            About
+          </TabsTrigger>
+        </TabsList>
 
-      <Card className="border-border">
-        <CardContent className="p-5">
-          <div className="flex items-center gap-2 mb-6">
-            <Info className="w-5 h-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">Data & Privacy</h2>
-          </div>
-          <div className="space-y-6">
-            <div>
-              <h3 className="font-medium text-foreground">Export My Data</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Download all your data in a machine-readable format (DPDP Act right to data portability).
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleExportData}
-                disabled={exporting}
-                className="mt-3"
-              >
-                {exporting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Preparing export...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download My Data (JSON)
-                  </>
-                )}
-              </Button>
-            </div>
-            <Separator />
-            <div>
-              <h3 className="font-medium text-destructive">Delete My Account</h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Permanently delete your account and all associated data.
-              </p>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDeleteAccount}
-                className="mt-3"
-              >
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete Account
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+        {/* PROFILE TAB */}
+        <TabsContent value="profile" className="focus:outline-none">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Card className="border-border/50 bg-card legal-card paper-texture overflow-hidden">
+              <CardContent className="p-6 space-y-5">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-border/10">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/5 border border-primary/10">
+                    <User className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Profile Parameters</h2>
+                    <p className="text-xs text-muted-foreground">Modify your account and corporate identity profile.</p>
+                  </div>
+                </div>
 
-      <Card className="border-border">
-        <CardContent className="p-5">
-          <h2 className="text-lg font-semibold text-foreground mb-4">About</h2>
-          <div className="space-y-2 text-sm text-muted-foreground">
-            <p><strong className="text-foreground">LegalMint AI</strong> v2.0 (India Edition)</p>
-            <p>Built for Indian businesses. Compliant with DPDP Act 2023.</p>
-            <p className="text-muted-foreground/70">LegalMint AI is not a law firm and does not provide legal advice. Consult a qualified advocate for legal matters.</p>
-          </div>
-        </CardContent>
-      </Card>
+                <div className="grid gap-5">
+                  <Input
+                    label="Name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Your name"
+                    className="bg-background border-border/60"
+                  />
+                  <Input
+                    label="Email Address"
+                    value={email}
+                    disabled
+                    helperText="Corporate email address cannot be changed."
+                    className="bg-background/50 border-border/40"
+                  />
+                  <Input
+                    label="Registered Business Name"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="Your Company Pvt Ltd"
+                    className="bg-background border-border/60"
+                  />
+                </div>
+
+                <div className="pt-3 flex justify-end">
+                  <Button onClick={handleSave} disabled={loading} className="font-semibold shadow-sm gap-2">
+                    {loading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Saving configurations...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="w-4 h-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* PRIVACY & COMPLIANCE TAB */}
+        <TabsContent value="privacy" className="focus:outline-none">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="space-y-6"
+          >
+            {/* Export data */}
+            <Card className="border-border/50 bg-card legal-card paper-texture overflow-hidden">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-border/10">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                    <Download className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Right to Portability (DPDP Act)</h2>
+                    <p className="text-xs text-muted-foreground">Export your mapped corporate data cleanly.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-w-xl">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Under the Digital Personal Data Protection (DPDP) Act 2023, you retain the legal right to request and export all digitized corporate assets mapped under your entity in a structured format.
+                  </p>
+                  <Button
+                    variant="outline"
+                    onClick={handleExportData}
+                    disabled={exporting}
+                    className="font-semibold border-border/60 hover:border-primary/50 text-xs py-5"
+                  >
+                    {exporting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin text-primary" />
+                        Structuring Portability JSON...
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-4 h-4 mr-2 text-primary" />
+                        Port Data Assets (Structured JSON)
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Delete Account */}
+            <Card className="border-border/50 bg-card legal-card paper-texture overflow-hidden">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-border/10">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-rose-500/5 border border-rose-500/10">
+                    <Trash2 className="w-5 h-5 text-rose-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground text-destructive">Right to Erasure</h2>
+                    <p className="text-xs text-muted-foreground">Irrevocably erase your corporate footprint.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3 max-w-xl">
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    Requesting erasure will permanently delete your authenticated account profile, compliance matrices, drafts, and business roadmap files. This process is immediate and irreversible.
+                  </p>
+                  <Button
+                    variant="destructive"
+                    onClick={handleDeleteAccount}
+                    className="font-semibold text-xs py-5"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Request Immediate Erasure (Delete Account)
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+
+        {/* ABOUT TAB */}
+        <TabsContent value="about" className="focus:outline-none">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+          >
+            <Card className="border-border/50 bg-card legal-card paper-texture overflow-hidden">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-2.5 pb-2 border-b border-border/10">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/5 border border-primary/10">
+                    <Info className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-base font-bold text-foreground">Platform Metadata</h2>
+                    <p className="text-xs text-muted-foreground">Details about the active compliance core engine.</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5 text-xs text-muted-foreground leading-relaxed max-w-2xl">
+                  <p>
+                    <strong className="text-foreground">LegalMint AI Core</strong> &bull; Version 2.0.0 (Indian Jurisdictions Build)
+                  </p>
+                  <p>
+                    LegalMint is optimized for dynamic compliance management under Indian frameworks, including the IT Act 2000, GST directives, Labour and Employment rules, and compliance boundaries of the DPDP Act 2023.
+                  </p>
+                  <div className="rounded-lg bg-muted/65 border border-border/30 p-3.5 text-[10px] text-muted-foreground/80 leading-normal">
+                    <span className="font-bold text-foreground block mb-1">LEGAL DISCLAIMER & COMPLIANCE STIPULATION:</span>
+                    LegalMint AI operates as an automated regulatory drafting tool using vetted open-source matrices. LegalMint AI is not an advocate, legal advisor, or law firm. Use of these materials does not form an attorney-client relationship. Mapped roadmaps are informational; always consult a certified advocate before executing binding documents.
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

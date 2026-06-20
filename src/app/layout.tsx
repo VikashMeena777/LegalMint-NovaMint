@@ -1,16 +1,27 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Barlow, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
-import { TRPCProvider } from "@/components/TRPCProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "sonner";
 import { LegalDisclaimer } from "@/components/LegalDisclaimer";
+import { CookieConsent } from "@/components/CookieConsent";
 import { Analytics } from "@vercel/analytics/react";
 import Script from "next/script";
 import { PageTransition } from "@/components/PageTransition";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const instrumentSerif = Instrument_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  style: ["normal", "italic"],
+  variable: "--font-heading",
+});
+const barlow = Barlow({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-body",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://legalmint.ai"),
@@ -57,7 +68,7 @@ export const metadata: Metadata = {
     },
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: "/favicon.svg",
   },
 };
 
@@ -91,15 +102,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
-      <body className={`${inter.className} min-h-screen bg-background text-foreground antialiased`}>
+      <body className={`${inter.className} ${inter.variable} ${instrumentSerif.variable} ${barlow.variable} min-h-screen bg-background text-foreground antialiased`}>
         <ErrorBoundary>
           <ThemeProvider>
-            <TRPCProvider>
               <PageTransition>{children}</PageTransition>
               <LegalDisclaimer />
+              <CookieConsent />
               <Toaster position="top-right" />
               <Analytics />
-            </TRPCProvider>
           </ThemeProvider>
         </ErrorBoundary>
       </body>

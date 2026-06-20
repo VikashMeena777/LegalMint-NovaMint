@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { DocumentPreview } from "@/components/DocumentPreview";
 import { Skeleton } from "@/components/Skeleton";
@@ -19,6 +18,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { PageHeader } from "@/components/PageHeader";
+import { motion, AnimatePresence } from "framer-motion";
 
 type DocumentRecord = {
   id: string;
@@ -37,13 +37,13 @@ type TemplateProfile = {
 };
 
 const DOCUMENT_TYPES = [
-  { type: "PRIVACY_POLICY", label: "Privacy Policy", icon: Lock, color: "text-sky-600", bgColor: "bg-sky-100 dark:bg-sky-900/30", desc: "DPDP Act 2023 compliant" },
-  { type: "TERMS_OF_SERVICE", label: "Terms of Service", icon: ClipboardList, color: "text-indigo-600", bgColor: "bg-indigo-100 dark:bg-indigo-900/30", desc: "Indian Contract Act compliant" },
-  { type: "COOKIE_POLICY", label: "Cookie Policy", icon: Cookie, color: "text-amber-600", bgColor: "bg-amber-100 dark:bg-amber-900/30", desc: "IT Rules 2021 compliant" },
-  { type: "EMPLOYMENT_AGREEMENT", label: "Employment Agreement", icon: User, color: "text-purple-600", bgColor: "bg-purple-100 dark:bg-purple-900/30", desc: "Indian labour law compliant" },
-  { type: "NDA", label: "Non-Disclosure Agreement", icon: Handshake, color: "text-emerald-600", bgColor: "bg-emerald-100 dark:bg-emerald-900/30", desc: "Indian Contract Act compliant" },
-  { type: "REFUND_POLICY", label: "Refund & Cancellation Policy", icon: Wallet, color: "text-rose-600", bgColor: "bg-rose-100 dark:bg-rose-900/30", desc: "Consumer Protection Act compliant" },
-  { type: "GRIEVANCE_POLICY", label: "Grievance Redressal Policy", icon: Megaphone, color: "text-orange-600", bgColor: "bg-orange-100 dark:bg-orange-900/30", desc: "IT Rules 2021 + CP Act" },
+  { type: "PRIVACY_POLICY", label: "Privacy Policy", icon: Lock, color: "text-sky-600", bgColor: "bg-sky-50 dark:bg-sky-950/20 border-sky-200/50", desc: "DPDP Act 2023 compliant policy builder" },
+  { type: "TERMS_OF_SERVICE", label: "Terms of Service", icon: ClipboardList, color: "text-indigo-600", bgColor: "bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200/50", desc: "Indian Contract Act vetted covenants" },
+  { type: "COOKIE_POLICY", label: "Cookie Policy", icon: Cookie, color: "text-amber-600", bgColor: "bg-amber-50 dark:bg-amber-950/20 border-amber-200/50", desc: "IT Rules 2021 browser tracker statements" },
+  { type: "EMPLOYMENT_AGREEMENT", label: "Employment Agreement", icon: User, color: "text-purple-600", bgColor: "bg-purple-50 dark:bg-purple-950/20 border-purple-200/50", desc: "Vetted Indian labour law frameworks" },
+  { type: "NDA", label: "Non-Disclosure Agreement", icon: Handshake, color: "text-emerald-600", bgColor: "bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200/50", desc: "Confidentiality & Contract Act covenants" },
+  { type: "REFUND_POLICY", label: "Refund & Cancellation", icon: Wallet, color: "text-rose-600", bgColor: "bg-rose-50 dark:bg-rose-950/20 border-rose-200/50", desc: "Consumer Protection directives" },
+  { type: "GRIEVANCE_POLICY", label: "Grievance Redressal", icon: Megaphone, color: "text-orange-600", bgColor: "bg-orange-50 dark:bg-orange-950/20 border-orange-200/50", desc: "IT Rules 2021 + CP Act officers" },
 ];
 
 export default function DocumentsPage() {
@@ -58,8 +58,38 @@ export default function DocumentsPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const { data: templates, isLoading: templatesLoading } = trpc.compliance.getDocumentTemplates.useQuery();
-  const { data: existingDocs, isLoading: docsLoading } = trpc.document.list.useQuery();
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [existingDocs, setExistingDocs] = useState<DocumentRecord[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(true);
+  const [docsLoading, setDocsLoading] = useState(true);
+
+  const loadData = useCallback(async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const [templatesRes, docsRes] = await Promise.all([
+        supabase.from("DocumentTemplate").select("*").eq("isActive", true).order("name"),
+        supabase.from("Document").select("*, DocumentTemplate(name, category)").eq("userId", user.id).order("createdAt", { ascending: false })
+      ]);
+
+      if (templatesRes.data) {
+        setTemplates(templatesRes.data);
+      }
+      if (docsRes.data) {
+        setExistingDocs(docsRes.data as DocumentRecord[]);
+      }
+    } catch {
+      toast.error("Failed to load document templates or documents");
+    } finally {
+      setTemplatesLoading(false);
+      setDocsLoading(false);
+    }
+  }, [supabase]);
+
+  useEffect(() => {
+    void loadData();
+  }, [loadData]);
 
   const allDocs = useMemo(() => {
     const base = [...((existingDocs || []) as DocumentRecord[]), ...documents];
@@ -110,35 +140,27 @@ export default function DocumentsPage() {
         return;
       }
 
-      const content = fillTemplate(template.templateContent, profile);
-
-      const { data: doc, error } = await supabase
-        .from("Document")
-        .insert({
-          userId: user.id,
+      const response = await fetch("/api/documents/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           businessProfileId: profile.id,
           templateId: template.id,
           title: getDocumentTitle(type, profile.companyName),
-          content,
-          status: "DRAFT",
-          generatedByAI: false,
-          version: "1.0.0",
-          updatedAt: new Date().toISOString(),
-        })
-        .select()
-        .single();
+        }),
+      });
 
-      if (error) {
-        toast.error("Failed to generate document: " + error.message);
-        setGenerating(false);
-        setSelectedType(null);
-        return;
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Failed to generate document");
       }
 
+      const doc = await response.json();
       setDocuments((prev) => [doc, ...prev]);
+      void loadData();
       toast.success(`${getDocumentTitle(type, profile.companyName)} generated successfully!`);
-    } catch {
-      toast.error("Something went wrong");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to generate document");
     }
 
     setGenerating(false);
@@ -206,13 +228,27 @@ export default function DocumentsPage() {
 
     if (!confirm(`Delete ${selected.length} document(s)? This cannot be undone.`)) return;
 
-    for (const doc of selected) {
-      await supabase.from("Document").delete().eq("id", doc.id);
-    }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("User not found");
+        return;
+      }
 
-    setDocuments(prev => prev.filter(d => !selectedIds.has(d.id)));
-    setSelectedIds(new Set());
-    toast.success(`${selected.length} document(s) deleted`);
+      for (const doc of selected) {
+        await supabase
+          .from("Document")
+          .delete()
+          .eq("id", doc.id)
+          .eq("userId", user.id);
+      }
+
+      setDocuments(prev => prev.filter(d => !selectedIds.has(d.id)));
+      setSelectedIds(new Set());
+      toast.success(`${selected.length} document(s) deleted`);
+    } catch {
+      toast.error("Failed to delete documents");
+    }
   };
 
   const toggleSelect = (id: string) => {
@@ -232,26 +268,6 @@ export default function DocumentsPage() {
     }
   };
 
-  const fillTemplate = (template: string, profile: TemplateProfile): string => {
-    let content = template;
-    const replacements: Record<string, string> = {
-      "{{COMPANY_NAME}}": profile.companyName || "[Company Name]",
-      "{{WEBSITE_URL}}": profile.website || "[Website URL]",
-      "{{CONTACT_EMAIL}}": "[Contact Email]",
-      "{{LAST_UPDATED}}": new Date().toISOString().split("T")[0],
-      "{{GOVERNING_JURISDICTION}}": profile.incorporatedState || "India",
-      "{{STATE}}": profile.incorporatedState || "[State]",
-      "{{GRIEVANCE_OFFICER_EMAIL}}": profile.grievanceOfficerEmail || "[Grievance Email]",
-      "{{COMPANY_ADDRESS}}": "[Company Address]",
-    };
-
-    for (const [key, value] of Object.entries(replacements)) {
-      content = content.replaceAll(key, value);
-    }
-
-    return content;
-  };
-
   const getDocumentTitle = (type: string, companyName: string) => {
     const titles: Record<string, string> = {
       PRIVACY_POLICY: "Privacy Policy",
@@ -267,23 +283,23 @@ export default function DocumentsPage() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "DRAFT": return <Badge variant="warning">Draft</Badge>;
-      case "PUBLISHED": return <Badge variant="success">Published</Badge>;
-      case "ARCHIVED": return <Badge variant="default">Archived</Badge>;
-      default: return <Badge>{status}</Badge>;
+      case "DRAFT": return <Badge variant="warning" className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Draft</Badge>;
+      case "PUBLISHED": return <Badge variant="success" className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Published</Badge>;
+      case "ARCHIVED": return <Badge variant="secondary" className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">Archived</Badge>;
+      default: return <Badge className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">{status}</Badge>;
     }
   };
 
   if (templatesLoading || docsLoading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-fade-in">
         <div>
           <Skeleton className="h-8 w-48 mb-2" />
           <Skeleton className="h-4 w-64" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="space-y-3 rounded-lg border border-border bg-card p-5">
+            <div key={i} className="space-y-3 rounded-xl border border-border bg-card p-5">
               <Skeleton className="h-10 w-10 rounded-lg" />
               <Skeleton className="h-5 w-40" />
               <Skeleton className="h-4 w-48" />
@@ -295,67 +311,85 @@ export default function DocumentsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 animate-fade-in font-body">
       <PageHeader
-        title="Documents"
-        description="Generate compliant legal documents for your Indian business."
+        title="Document Workspace"
+        description="Generate and manage legally compliant documents for Indian jurisdictions."
       />
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {DOCUMENT_TYPES.map((doc) => (
-          <button
-            type="button"
-            key={doc.type}
-            className="group rounded-lg border border-border bg-card p-5 text-left transition-colors hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
-            onClick={() => handleGenerate(doc.type)}
-            disabled={generating}
-          >
-            <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg ${doc.bgColor}`}>
-              {generating && selectedType === doc.type ? (
-                <Loader2 className={`h-5 w-5 ${doc.color} animate-spin`} />
-              ) : (
-                <doc.icon className={`h-5 w-5 ${doc.color}`} />
-              )}
-            </div>
-            <h3 className="mb-1 font-semibold text-foreground">{doc.label}</h3>
-            <p className="text-sm text-muted-foreground">{doc.desc}</p>
-          </button>
-        ))}
+      {/* Grid of builder document types */}
+      <div className="space-y-4">
+        <h2 className="font-heading text-xl font-bold text-foreground">Generate New Document</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {DOCUMENT_TYPES.map((doc, index) => (
+            <motion.button
+              type="button"
+              key={doc.type}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: index * 0.04 }}
+              className="group rounded-xl border border-border/50 bg-card p-5 text-left transition-all duration-300 hover-lift hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => handleGenerate(doc.type)}
+              disabled={generating}
+            >
+              <div className={`mb-3.5 flex h-10 w-10 items-center justify-center rounded-lg border ${doc.bgColor}`}>
+                {generating && selectedType === doc.type ? (
+                  <Loader2 className={`h-5 w-5 ${doc.color} animate-spin`} />
+                ) : (
+                  <doc.icon className={`h-5 w-5 ${doc.color}`} />
+                )}
+              </div>
+              <h3 className="mb-1 font-heading font-bold text-foreground group-hover:text-primary transition-colors text-base">{doc.label}</h3>
+              <p className="text-xs text-muted-foreground leading-normal">{doc.desc}</p>
+            </motion.button>
+          ))}
+        </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-lg font-semibold text-foreground">Your Documents ({allDocs.length})</h2>
-          {selectedIds.size > 0 && (
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="info">{selectedIds.size} selected</Badge>
-              <Button variant="outline" size="sm" onClick={() => handleBulkExport("PDF")}>
-                <Download className="w-4 h-4 mr-1.5" />
-                Export PDF
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => handleBulkExport("DOCX")}>
-                <Download className="w-4 h-4 mr-1.5" />
-                Export DOCX
-              </Button>
-              <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
-                <Trash2 className="w-4 h-4 mr-1.5" />
-                Delete
-              </Button>
-            </div>
-          )}
+      {/* Document management section */}
+      <div className="space-y-4 pt-4 border-t border-border/20">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <h2 className="font-heading text-2xl font-semibold text-foreground">Your Documents Directory ({allDocs.length})</h2>
+          
+          <AnimatePresence>
+            {selectedIds.size > 0 && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex flex-wrap items-center gap-2"
+              >
+                <Badge variant="info" className="px-3 py-1 font-bold text-xs">{selectedIds.size} Selected</Badge>
+                <Button variant="outline" size="sm" onClick={() => handleBulkExport("PDF")} className="h-9 text-xs font-semibold">
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                  PDF
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => handleBulkExport("DOCX")} className="h-9 text-xs font-semibold">
+                  <Download className="w-3.5 h-3.5 mr-1.5" />
+                  DOCX
+                </Button>
+                <Button variant="destructive" size="sm" onClick={handleBulkDelete} className="h-9 text-xs font-semibold">
+                  <Trash2 className="w-3.5 h-3.5 mr-1.5" />
+                  Delete
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <div className="flex flex-wrap gap-3">
-          <div className="flex-1 min-w-[200px]">
+        {/* Filter bar */}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex-1">
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search documents..."
-              leftIcon={<Search className="w-4 h-4" />}
+              placeholder="Search documents by title or contents..."
+              leftIcon={<Search className="w-4 h-4 text-muted-foreground" />}
+              className="bg-card border-border/50 text-sm h-10"
             />
           </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[160px]">
+            <SelectTrigger className="w-full sm:w-[150px] h-10 text-xs">
               <SelectValue placeholder="All Status" />
             </SelectTrigger>
             <SelectContent>
@@ -366,11 +400,11 @@ export default function DocumentsPage() {
             </SelectContent>
           </Select>
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="All Types" />
+            <SelectTrigger className="w-full sm:w-[180px] h-10 text-xs">
+              <SelectValue placeholder="All Templates" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
+              <SelectItem value="all">All Templates</SelectItem>
               {templates?.map((t) => (
                 <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
               ))}
@@ -378,85 +412,114 @@ export default function DocumentsPage() {
           </Select>
         </div>
 
+        {/* Documents list */}
         {allDocs.length === 0 ? (
-          <Card className="border-border">
-            <CardContent className="py-12 text-center">
-              <File className="w-14 h-14 text-muted-foreground/30 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-1">No documents found</h3>
-              <p className="text-muted-foreground text-sm">
+          <Card className="border-border/50 bg-card legal-card paper-texture">
+            <CardContent className="py-16 text-center max-w-sm mx-auto">
+              <div className="mx-auto w-12 h-12 rounded-full bg-muted/60 border border-border/40 flex items-center justify-center mb-4">
+                <File className="w-6 h-6 text-muted-foreground/45" />
+              </div>
+              <h3 className="font-heading text-lg font-semibold text-foreground mb-1.5">No Documents Found</h3>
+              <p className="text-xs text-muted-foreground leading-normal">
                 {searchQuery || statusFilter !== "all" || typeFilter !== "all"
-                  ? "Try adjusting your filters"
-                  : "Generate your first document above"}
+                  ? "Try resetting your search query or adjusting your filters."
+                  : "Generate your first regulatory document above."}
               </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-2.5 text-sm text-muted-foreground">
+            <div className="flex items-center gap-2 rounded-lg bg-muted/50 px-4 py-2 border border-border/20 text-xs text-muted-foreground">
               <input
                 type="checkbox"
                 aria-label="Select all documents"
                 checked={selectedIds.size === allDocs.length && allDocs.length > 0}
                 onChange={toggleSelectAll}
-                className="rounded border-input"
+                className="rounded border-input text-primary focus:ring-primary w-3.5 h-3.5"
               />
-              <span className="font-medium">Select all</span>
+              <span className="font-semibold uppercase tracking-wider">Select All Documents</span>
             </div>
-            {allDocs.map((doc) => (
-              <Card key={doc.id} className="border-border">
-                <div className="p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <input
-                        type="checkbox"
-                        aria-label={`Select ${doc.title}`}
-                        checked={selectedIds.has(doc.id)}
-                        onChange={() => toggleSelect(doc.id)}
-                        className="rounded border-input"
-                      />
-                      <div className="min-w-0">
-                        <h3 className="truncate font-medium text-foreground">{doc.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Created {new Date(doc.createdAt).toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" })}
-                        </p>
+
+            <AnimatePresence mode="popLayout">
+              {allDocs.map((doc, docIndex) => (
+                <motion.div
+                  key={doc.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -12 }}
+                  transition={{ duration: 0.25, delay: Math.min(docIndex * 0.02, 0.25) }}
+                  className="rounded-xl border border-border/50 bg-card legal-card hover-lift transition-all duration-300"
+                >
+                  <div className="p-4">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${doc.title}`}
+                          checked={selectedIds.has(doc.id)}
+                          onChange={() => toggleSelect(doc.id)}
+                          className="rounded border-input text-primary focus:ring-primary w-3.5 h-3.5 flex-shrink-0"
+                        />
+                        <div className="min-w-0 space-y-0.5">
+                          <h3 className="truncate font-heading font-bold text-foreground text-base">{doc.title}</h3>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1 font-medium">
+                            <span>Generated:</span>
+                            <span>
+                              {new Date(doc.createdAt).toLocaleDateString("en-IN", {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              })}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+                        {getStatusBadge(doc.status)}
+                        
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setPreviewDoc({ title: doc.title, content: doc.content })}
+                          className="h-9 px-3 text-xs font-semibold border border-border/20 group-hover:border-primary/20 transition-colors"
+                        >
+                          <Eye className="w-3.5 h-3.5 mr-1.5 text-muted-foreground group-hover:text-primary" />
+                          Preview
+                        </Button>
+                        
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-9 w-9 border border-border/20">
+                              <MoreVertical className="w-3.5 h-3.5" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="text-xs font-medium border border-border/50">
+                            <DropdownMenuItem onClick={() => handleExport(doc, "PDF")} className="gap-2">
+                              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                              Export PDF
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(doc, "DOCX")} className="gap-2">
+                              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                              Export DOCX
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(doc, "HTML")} className="gap-2">
+                              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                              Export HTML
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleExport(doc, "MARKDOWN")} className="gap-2">
+                              <Download className="w-3.5 h-3.5 text-muted-foreground" />
+                              Export Markdown
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                    <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                      {getStatusBadge(doc.status)}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setPreviewDoc({ title: doc.title, content: doc.content })}
-                      >
-                        <Eye className="w-4 h-4 mr-1.5" />
-                        Preview
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleExport(doc, "PDF")}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Export PDF
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExport(doc, "DOCX")}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Export DOCX
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleExport(doc, "HTML")}>
-                            <Download className="w-4 h-4 mr-2" />
-                            Export HTML
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>

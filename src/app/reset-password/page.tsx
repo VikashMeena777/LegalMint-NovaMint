@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +20,37 @@ function ResetForm() {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<"request" | "reset">("request");
 
+  useEffect(() => {
+    // 1. Listen for PASSWORD_RECOVERY auth state change from Supabase
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setStep("reset");
+      }
+    });
+
+    // 2. Check url hash directly (sometimes onAuthStateChange event is skipped)
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      const query = window.location.search;
+      if (hash.includes("type=recovery") || query.includes("code=")) {
+        setStep("reset");
+      }
+    }
+
+    // 3. Fallback: Check if there is an active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        setStep("reset");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -32,7 +63,6 @@ function ResetForm() {
       toast.error(error.message);
     } else {
       toast.success("Password reset email sent. Check your inbox.");
-      setStep("reset");
     }
 
     setLoading(false);

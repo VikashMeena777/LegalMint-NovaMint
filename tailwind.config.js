@@ -30,6 +30,7 @@ module.exports = {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",
           light: "hsl(var(--secondary-light))",
+          text: "hsl(var(--secondary-text))",
         },
         destructive: {
           DEFAULT: "hsl(var(--destructive))",
@@ -82,8 +83,10 @@ module.exports = {
         "2xl": "calc(var(--radius) + 2px)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        display: ["Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+        display: ["var(--font-inter)", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "serif"],
+        body: ["var(--font-body)", "sans-serif"],
       },
       fontSize: {
         "display-lg": ["3.5rem", { lineHeight: "1.1", letterSpacing: "0em", fontWeight: "700" }],

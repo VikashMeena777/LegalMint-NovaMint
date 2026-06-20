@@ -12,6 +12,11 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Logo } from "@/components/Logo";
 import type { Database } from "@/types/database";
+import {
+  buildComplianceMappingRows,
+  getApplicableComplianceRequirements,
+} from "@/lib/compliance-mapping";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
   role: "ai" | "user";
@@ -232,7 +237,7 @@ export default function OnboardingPage() {
         "HUF": "HUF",
       };
 
-      const { error } = await supabase.from("BusinessProfile").insert({
+      const { data: createdProfile, error } = await supabase.from("BusinessProfile").insert({
         userId: user.id,
         companyName: finalProfile.businessName,
         businessType: businessTypeMap[finalProfile.businessType] || "OTHER",
@@ -249,12 +254,37 @@ export default function OnboardingPage() {
         onboardingCompleted: true,
         onboardingStep: QUESTIONS.length,
         updatedAt: new Date().toISOString(),
-      });
+      }).select("*").single();
 
       if (error) {
         toast.error("Failed to save profile: " + error.message);
         setLoading(false);
         return false;
+      }
+
+      const { data: requirements, error: requirementsError } = await supabase
+        .from("ComplianceRequirement")
+        .select("id, category, isMandatory, applicableToBusinessTypes, applicableToEntityTypes");
+
+      if (requirementsError) {
+        toast.error("Profile saved, but compliance roadmap could not be loaded.");
+      } else if (createdProfile?.id) {
+        const applicableRequirements = getApplicableComplianceRequirements(
+          createdProfile,
+          requirements || []
+        );
+
+        if (applicableRequirements.length > 0) {
+          const { error: mappingError } = await supabase
+            .from("ComplianceMapping")
+            .upsert(buildComplianceMappingRows(createdProfile.id, applicableRequirements), {
+              onConflict: "businessProfileId,complianceRequirementId",
+            });
+
+          if (mappingError) {
+            toast.error("Profile saved, but compliance roadmap could not be created.");
+          }
+        }
       }
 
       addAiMessage("Your compliance roadmap is ready. Go to the dashboard to review your obligations and generate the documents you need first.");
@@ -316,52 +346,72 @@ export default function OnboardingPage() {
   const progress = Math.round((currentStep / QUESTIONS.length) * 100);
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="mx-auto max-w-3xl space-y-6 animate-fade-in font-body py-4 md:py-8 px-4">
+      {/* Onboarding Header */}
       <div className="flex items-center justify-between gap-4">
-        <Logo size="sm" />
-        <Badge variant="default">{Math.min(currentStep + 1, QUESTIONS.length)} / {QUESTIONS.length}</Badge>
+        <Logo size="sm" showText={true} />
+        <Badge variant="warning" className="font-semibold px-3 py-1 rounded-full text-xs">
+          Step {Math.min(currentStep + 1, QUESTIONS.length)} of {QUESTIONS.length}
+        </Badge>
       </div>
 
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <h1 className="text-xl font-semibold text-foreground">Business Onboarding</h1>
-          <span className="text-sm text-muted-foreground">{progress}% complete</span>
+      {/* Progress Section */}
+      <div className="space-y-2 p-5 bg-card border border-border/50 rounded-xl legal-card">
+        <div className="flex items-center justify-between gap-3">
+          <h1 className="text-xl font-heading font-bold text-foreground">Business Profiles & Setup</h1>
+          <span className="text-xs font-semibold text-primary">{progress}% Complete</span>
         </div>
         <Progress value={progress} color="default" size="sm" />
       </div>
 
-      <Card className="border-border">
-        <CardContent className="max-h-[52vh] min-h-[360px] space-y-4 overflow-y-auto p-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              <div
-                className={`max-w-[88%] rounded-lg px-4 py-3 text-sm leading-6 ${
-                  msg.role === "user"
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-foreground"
-                }`}
-              >
-                {msg.content}
+      {/* Conversation Thread */}
+      <Card className="border-border/50 bg-card legal-card paper-texture shadow-sm">
+        <CardContent className="max-h-[48vh] min-h-[380px] space-y-4 overflow-y-auto p-6 scrollbar-thin flex flex-col justify-end">
+          <div className="space-y-4 overflow-y-auto max-h-full">
+            <AnimatePresence initial={false}>
+              {messages.map((msg, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+                >
+                  <div
+                    className={`max-w-[82%] rounded-2xl px-4.5 py-3 text-sm leading-relaxed shadow-none ${
+                      msg.role === "user"
+                        ? "bg-primary text-primary-foreground rounded-tr-none border border-primary/10 font-semibold"
+                        : "bg-muted/65 text-foreground rounded-tl-none border border-border/30"
+                    }`}
+                  >
+                    {msg.content}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            {loading && (
+              <div className="flex justify-start">
+                <div className="flex items-center gap-2 rounded-2xl rounded-tl-none bg-muted/65 border border-border/30 px-4.5 py-3 text-sm text-muted-foreground font-medium">
+                  <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                  Analyzing compliance parameters...
+                </div>
               </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="flex justify-start">
-              <div className="flex items-center gap-2 rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Processing...
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
+            )}
+            <div ref={messagesEndRef} />
+          </div>
         </CardContent>
       </Card>
 
+      {/* Action Input Section */}
       {currentStep < QUESTIONS.length && currentQuestion && (
-        <Card className="border-border">
-          <CardContent className="space-y-4 p-4">
-            <p className="text-sm font-medium text-foreground">{currentQuestion.prompt}</p>
+        <Card className="border-border/50 bg-card legal-card">
+          <CardContent className="space-y-4 p-5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="w-1.5 h-3.5 bg-secondary rounded-full" />
+              <p className="text-sm font-semibold text-foreground">{currentQuestion.prompt}</p>
+            </div>
 
+            {/* Multiselect Question Options */}
             {currentQuestion.type === "multiselect" && (
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
@@ -376,13 +426,13 @@ export default function OnboardingPage() {
                             prev.includes(opt) ? prev.filter((o) => o !== opt) : [...prev, opt]
                           );
                         }}
-                        className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
+                        className={`rounded-lg border px-3.5 py-2 text-xs font-semibold tracking-wide uppercase transition-all duration-200 ${
                           selected
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background text-muted-foreground hover:border-primary/50"
+                            ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                            : "border-border/60 bg-background text-muted-foreground hover:border-primary/50 hover:bg-primary/5"
                         }`}
                       >
-                        {selected && <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" />}
+                        {selected && <CheckCircle2 className="mr-1.5 inline h-3.5 w-3.5" />}
                         {opt}
                       </button>
                     );
@@ -391,7 +441,7 @@ export default function OnboardingPage() {
                 <Button
                   onClick={() => void handleNext()}
                   disabled={selectedOptions.length === 0 || loading}
-                  className="w-full"
+                  className="w-full font-semibold shadow-sm"
                 >
                   Continue
                   <ArrowRight className="ml-2 h-4 w-4" />
@@ -399,14 +449,15 @@ export default function OnboardingPage() {
               </div>
             )}
 
+            {/* Select Question Options */}
             {currentQuestion.type === "select" && (
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 {currentQuestion.options?.map((opt) => (
                   <Button
                     key={opt}
                     type="button"
                     variant="outline"
-                    className="justify-start whitespace-normal text-left"
+                    className="justify-start whitespace-normal text-left py-5 px-4 font-semibold text-xs uppercase tracking-wider border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-all duration-200"
                     onClick={() => void handleNext(opt)}
                     disabled={loading}
                   >
@@ -416,20 +467,21 @@ export default function OnboardingPage() {
               </div>
             )}
 
+            {/* Boolean Question Options */}
             {currentQuestion.type === "boolean" && (
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <Button
                   variant="outline"
-                  className="py-6 text-base"
+                  className="py-6 text-sm font-semibold border-border/60 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition-all duration-200"
                   onClick={() => void handleNext(true)}
                   disabled={loading}
                 >
-                  <CheckCircle2 className="mr-2 h-5 w-5 text-emerald-500" />
+                  <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" />
                   Yes
                 </Button>
                 <Button
                   variant="outline"
-                  className="py-6 text-base"
+                  className="py-6 text-sm font-semibold border-border/60 hover:border-rose-500/50 hover:bg-rose-500/5 transition-all duration-200"
                   onClick={() => void handleNext(false)}
                   disabled={loading}
                 >
@@ -438,6 +490,7 @@ export default function OnboardingPage() {
               </div>
             )}
 
+            {/* Text Input Option */}
             {currentQuestion.type === "text" && (
               <div className="flex gap-2">
                 <Input
@@ -446,15 +499,16 @@ export default function OnboardingPage() {
                   onKeyDown={(e) => {
                     if (e.key === "Enter") void handleNext();
                   }}
-                  placeholder="Type your answer..."
+                  placeholder="Type your response here..."
                   autoFocus
-                  className="flex-1"
+                  className="flex-1 bg-background border-border/60 text-sm focus:ring-1 focus:ring-primary h-10"
                 />
                 <Button
                   onClick={() => void handleNext()}
                   disabled={!inputValue.trim() || loading}
                   size="icon"
-                  aria-label="Send answer"
+                  className="h-10 w-10 flex-shrink-0"
+                  aria-label="Send response"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
@@ -464,14 +518,16 @@ export default function OnboardingPage() {
         </Card>
       )}
 
+      {/* Onboarding Completed Panel */}
       {currentStep >= QUESTIONS.length && (
-        <div className="text-center">
+        <div className="text-center py-6 animate-slide-up">
           <Button
             onClick={() => router.push("/dashboard")}
             size="lg"
+            className="font-semibold shadow-sm gap-2 px-8 py-6 text-base"
           >
-            Go to Dashboard
-            <ArrowRight className="ml-2 h-5 w-5" />
+            Access Dashboard
+            <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
       )}

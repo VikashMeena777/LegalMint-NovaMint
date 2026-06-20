@@ -35,8 +35,8 @@ export async function middleware(req: NextRequest) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const isAuthRoute = req.nextUrl.pathname.startsWith("/login") ||
     req.nextUrl.pathname.startsWith("/signup") ||
@@ -50,13 +50,13 @@ export async function middleware(req: NextRequest) {
     req.nextUrl.pathname.startsWith("/settings") ||
     req.nextUrl.pathname.startsWith("/billing");
 
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !user) {
     const redirectUrl = new URL("/login", req.url);
     redirectUrl.searchParams.set("redirectedFrom", req.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
-  if (isAuthRoute && session) {
+  if (isAuthRoute && user) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
@@ -67,7 +67,7 @@ export async function middleware(req: NextRequest) {
   res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   res.headers.set(
     "Content-Security-Policy",
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.cashfree.com https://api.resend.com https://integrate.api.nvidia.com https://api.groq.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; media-src 'self' https://d8j0ntlcm91z4.cloudfront.net; connect-src 'self' https://*.supabase.co https://*.cashfree.com https://api.resend.com https://integrate.api.nvidia.com https://api.groq.com https://vitals.vercel-insights.com https://*.vercel-insights.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
   );
   res.headers.set(
     "Permissions-Policy",

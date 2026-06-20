@@ -1,6 +1,13 @@
+"use client";
+
 import { AlertTriangle } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function LegalDisclaimer({ className = "" }: { className?: string }) {
+  const pathname = usePathname();
+
+  if (pathname === "/") return null;
+
   return (
     <div className={`bg-secondary/10 border-t border-secondary/25 px-4 py-2.5 ${className}`}>
       <div className="mx-auto flex max-w-7xl items-start gap-2">
