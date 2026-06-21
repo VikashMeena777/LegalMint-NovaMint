@@ -1,0 +1,45 @@
+name: "Cron: Supabase Keep-Alive"
+
+on:
+  schedule:
+    # Run every 4 days at 06:00 UTC — well within the 7-day inactivity window
+    - cron: "0 6 */4 * *"
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  keep-alive:
+    name: Ping Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          echo "🔄 Pinging Supabase project to prevent auto-pause..."
+
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}")
+
+          echo "HTTP Status: $RESPONSE"
+
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 400 ]; then
+            echo "✅ Supabase project is alive (HTTP $RESPONSE)"
+          else
+            echo "⚠️ Unexpected response (HTTP $RESPONSE) — project may need attention"
+            exit 1
+          fi
+
+      - name: Ping Supabase Auth Health
+        run: |
+          echo "🔄 Checking Supabase Auth health..."
+
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/auth/v1/health")
+
+          echo "Auth Health HTTP Status: $RESPONSE"
+
+          if [ "$RESPONSE" -ge 200 ] && [ "$RESPONSE" -lt 400 ]; then
+            echo "✅ Supabase Auth is healthy (HTTP $RESPONSE)"
+          else
+            echo "⚠️ Auth health check returned HTTP $RESPONSE"
+          fi
