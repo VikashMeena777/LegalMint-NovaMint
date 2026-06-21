@@ -80,7 +80,7 @@ export default function SignupPage() {
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[hsl(40_55%_93%_/_0.05)] rounded-full blur-3xl" />
           
           <div className="relative z-10">
-            <Logo size="lg" className="text-white" showText={true} />
+            <Logo variant="wordmark-dark" size="lg" />
           </div>
 
           <div className="relative z-10 space-y-8 my-auto max-w-lg">
